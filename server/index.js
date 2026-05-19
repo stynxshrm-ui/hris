@@ -27,7 +27,7 @@
 // orchestrator.js imports env.js as its first import, which loads .env.local
 // and aliases NEXT_PUBLIC_SUPABASE_URL → SUPABASE_URL. That side effect
 // completes before any module body (including this one) executes.
-import { orchestrate } from '../agent/orchestrator.js'
+import { orchestrate } from '../agent/mistral_orchestrator.js'
 
 import {
   searchEmployees,

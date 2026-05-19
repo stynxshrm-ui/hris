@@ -24,9 +24,9 @@ services:
       - key: NODE_ENV
         value: production
 
-      # ── Anthropic ──────────────────────────────────────────────────────────
+      # ── Mistral ────────────────────────────────────────────────────────────
       # Set this in the Render dashboard — never commit the actual key
-      - key: ANTHROPIC_API_KEY
+      - key: MISTRAL_API_KEY
         sync: false
 
       # ── Supabase ───────────────────────────────────────────────────────────
