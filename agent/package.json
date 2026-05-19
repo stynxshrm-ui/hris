@@ -1,0 +1,17 @@
+{
+  "name": "smarthris-agent",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SmartHRIS AI agent — orchestrator and tool layer",
+  "main": "orchestrator.js",
+  "scripts": {
+    "demo": "node orchestrator.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.55.0",
+    "@mistralai/mistralai": "^2.2.1",
+    "@supabase/supabase-js": "^2.50.0",
+    "dotenv": "^17.4.2",
+    "ws": "^8.20.1"
+  }
+}

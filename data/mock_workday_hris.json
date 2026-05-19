@@ -1,0 +1,730 @@
+{
+  "metadata": {
+    "source": "Workday REST API",
+    "tenant": "acme_corporation",
+    "response_timestamp": "2026-05-19T14:32:00Z",
+    "api_version": "v40.0",
+    "request_id": "req_8f7a6b5c4d3e2f1a"
+  },
+  "data": {
+    "workers": {
+      "total_count": 15,
+      "page": 1,
+      "page_size": 50,
+      "has_more": false,
+      "employees": [
+        {
+          "worker_id": "WD-EMP-001",
+          "personal_info": {
+            "first_name": "Jennifer",
+            "last_name": "Martinez",
+            "preferred_name": "Jen"
+          },
+          "employment_info": {
+            "job_title": "Senior Software Engineer",
+            "department": "Engineering",
+            "subdepartment": "Platform Engineering",
+            "hire_date": "2019-03-15",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-007",
+            "manager_name": "David Chen"
+          },
+          "compensation": {
+            "salary_band": "L4",
+            "base_salary": 165000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower A",
+            "floor": "5th",
+            "work_location_type": "On-Site"
+          },
+          "time_off": {
+            "vacation_balance": 18,
+            "sick_balance": 12,
+            "personal_days": 3,
+            "floating_holiday": 1
+          }
+        },
+        {
+          "worker_id": "WD-EMP-002",
+          "personal_info": {
+            "first_name": "Michael",
+            "last_name": "Thompson",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Product Manager",
+            "department": "Product",
+            "subdepartment": "Consumer Products",
+            "hire_date": "2020-07-22",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-010",
+            "manager_name": "Sarah Williams"
+          },
+          "compensation": {
+            "salary_band": "M3",
+            "base_salary": 145000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower B",
+            "floor": "3rd",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 14,
+            "sick_balance": 8,
+            "personal_days": 3,
+            "floating_holiday": 0
+          }
+        },
+        {
+          "worker_id": "WD-EMP-003",
+          "personal_info": {
+            "first_name": "Aisha",
+            "last_name": "Patel",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Data Scientist",
+            "department": "Data & Analytics",
+            "subdepartment": "Machine Learning",
+            "hire_date": "2021-01-10",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-011",
+            "manager_name": "Robert Kim"
+          },
+          "compensation": {
+            "salary_band": "L3",
+            "base_salary": 135000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "New York Office",
+            "building": "One Manhattan West",
+            "floor": "12th",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 11,
+            "sick_balance": 10,
+            "personal_days": 2,
+            "floating_holiday": 1
+          }
+        },
+        {
+          "worker_id": "WD-EMP-004",
+          "personal_info": {
+            "first_name": "James",
+            "last_name": "O'Connor",
+            "preferred_name": "Jim"
+          },
+          "employment_info": {
+            "job_title": "DevOps Engineer",
+            "department": "Engineering",
+            "subdepartment": "Infrastructure",
+            "hire_date": "2018-09-05",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-007",
+            "manager_name": "David Chen"
+          },
+          "compensation": {
+            "salary_band": "L4",
+            "base_salary": 155000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "Austin Office",
+            "building": "The Domain",
+            "floor": "4th",
+            "work_location_type": "Remote"
+          },
+          "time_off": {
+            "vacation_balance": 22,
+            "sick_balance": 15,
+            "personal_days": 3,
+            "floating_holiday": 2
+          }
+        },
+        {
+          "worker_id": "WD-EMP-005",
+          "personal_info": {
+            "first_name": "Emily",
+            "last_name": "Nakamura",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "UX Designer",
+            "department": "Design",
+            "subdepartment": "Product Design",
+            "hire_date": "2022-04-18",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-012",
+            "manager_name": "Lisa Anderson"
+          },
+          "compensation": {
+            "salary_band": "L2",
+            "base_salary": 110000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower A",
+            "floor": "2nd",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 8,
+            "sick_balance": 10,
+            "personal_days": 3,
+            "floating_holiday": 0
+          }
+        },
+        {
+          "worker_id": "WD-EMP-006",
+          "personal_info": {
+            "first_name": "Carlos",
+            "last_name": "Rodriguez",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Security Analyst",
+            "department": "Information Security",
+            "subdepartment": "Threat Intelligence",
+            "hire_date": "2020-11-30",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-013",
+            "manager_name": "Patricia Hughes"
+          },
+          "compensation": {
+            "salary_band": "L3",
+            "base_salary": 125000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "Denver Office",
+            "building": "Denver Tech Center",
+            "floor": "6th",
+            "work_location_type": "On-Site"
+          },
+          "time_off": {
+            "vacation_balance": 16,
+            "sick_balance": 14,
+            "personal_days": 2,
+            "floating_holiday": 1
+          }
+        },
+        {
+          "worker_id": "WD-EMP-007",
+          "personal_info": {
+            "first_name": "David",
+            "last_name": "Chen",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Engineering Manager",
+            "department": "Engineering",
+            "subdepartment": "Platform Engineering",
+            "hire_date": "2016-02-14",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-015",
+            "manager_name": "Amanda Foster"
+          },
+          "compensation": {
+            "salary_band": "M4",
+            "base_salary": 195000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower A",
+            "floor": "6th",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 25,
+            "sick_balance": 20,
+            "personal_days": 3,
+            "floating_holiday": 2
+          }
+        },
+        {
+          "worker_id": "WD-EMP-008",
+          "personal_info": {
+            "first_name": "Rachel",
+            "last_name": "Kowalski",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Customer Success Manager",
+            "department": "Sales",
+            "subdepartment": "Customer Success",
+            "hire_date": "2021-08-02",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-014",
+            "manager_name": "Thomas Wright"
+          },
+          "compensation": {
+            "salary_band": "L2",
+            "base_salary": 95000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "Chicago Office",
+            "building": "Willis Tower",
+            "floor": "45th",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 12,
+            "sick_balance": 9,
+            "personal_days": 2,
+            "floating_holiday": 0
+          }
+        },
+        {
+          "worker_id": "WD-EMP-009",
+          "personal_info": {
+            "first_name": "Marcus",
+            "last_name": "Johnson",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "QA Engineer",
+            "department": "Engineering",
+            "subdepartment": "Quality Assurance",
+            "hire_date": "2019-06-20",
+            "employment_status": "On Leave",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-007",
+            "manager_name": "David Chen"
+          },
+          "compensation": {
+            "salary_band": "L2",
+            "base_salary": 105000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower B",
+            "floor": "3rd",
+            "work_location_type": "On-Site"
+          },
+          "time_off": {
+            "vacation_balance": 5,
+            "sick_balance": 30,
+            "personal_days": 1,
+            "floating_holiday": 0
+          },
+          "leave_info": {
+            "leave_type": "Parental Leave",
+            "start_date": "2026-04-01",
+            "expected_end_date": "2026-06-30"
+          }
+        },
+        {
+          "worker_id": "WD-EMP-010",
+          "personal_info": {
+            "first_name": "Sarah",
+            "last_name": "Williams",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Director of Product",
+            "department": "Product",
+            "subdepartment": "Product Management",
+            "hire_date": "2017-05-08",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-015",
+            "manager_name": "Amanda Foster"
+          },
+          "compensation": {
+            "salary_band": "M5",
+            "base_salary": 220000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower A",
+            "floor": "7th",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 20,
+            "sick_balance": 18,
+            "personal_days": 3,
+            "floating_holiday": 2
+          }
+        },
+        {
+          "worker_id": "WD-EMP-011",
+          "personal_info": {
+            "first_name": "Robert",
+            "last_name": "Kim",
+            "preferred_name": "Rob"
+          },
+          "employment_info": {
+            "job_title": "Principal Data Engineer",
+            "department": "Data & Analytics",
+            "subdepartment": "Data Engineering",
+            "hire_date": "2018-01-22",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-015",
+            "manager_name": "Amanda Foster"
+          },
+          "compensation": {
+            "salary_band": "L5",
+            "base_salary": 185000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "New York Office",
+            "building": "One Manhattan West",
+            "floor": "15th",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 24,
+            "sick_balance": 16,
+            "personal_days": 3,
+            "floating_holiday": 1
+          }
+        },
+        {
+          "worker_id": "WD-EMP-012",
+          "personal_info": {
+            "first_name": "Lisa",
+            "last_name": "Anderson",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Senior UX Researcher",
+            "department": "Design",
+            "subdepartment": "User Research",
+            "hire_date": "2019-09-12",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-015",
+            "manager_name": "Amanda Foster"
+          },
+          "compensation": {
+            "salary_band": "L4",
+            "base_salary": 140000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower A",
+            "floor": "2nd",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 15,
+            "sick_balance": 11,
+            "personal_days": 2,
+            "floating_holiday": 1
+          }
+        },
+        {
+          "worker_id": "WD-EMP-013",
+          "personal_info": {
+            "first_name": "Patricia",
+            "last_name": "Hughes",
+            "preferred_name": "Trish"
+          },
+          "employment_info": {
+            "job_title": "CISO",
+            "department": "Information Security",
+            "subdepartment": "Executive Security",
+            "hire_date": "2015-08-03",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-016",
+            "manager_name": "CEO John Reynolds"
+          },
+          "compensation": {
+            "salary_band": "E2",
+            "base_salary": 350000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Executive Suite",
+            "floor": "20th",
+            "work_location_type": "On-Site"
+          },
+          "time_off": {
+            "vacation_balance": 30,
+            "sick_balance": 25,
+            "personal_days": 5,
+            "floating_holiday": 3
+          }
+        },
+        {
+          "worker_id": "WD-EMP-014",
+          "personal_info": {
+            "first_name": "Thomas",
+            "last_name": "Wright",
+            "preferred_name": "Tom"
+          },
+          "employment_info": {
+            "job_title": "VP of Sales",
+            "department": "Sales",
+            "subdepartment": "Sales Leadership",
+            "hire_date": "2016-11-14",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-016",
+            "manager_name": "CEO John Reynolds"
+          },
+          "compensation": {
+            "salary_band": "E1",
+            "base_salary": 280000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "Chicago Office",
+            "building": "Willis Tower",
+            "floor": "50th",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 28,
+            "sick_balance": 20,
+            "personal_days": 4,
+            "floating_holiday": 2
+          }
+        },
+        {
+          "worker_id": "WD-EMP-015",
+          "personal_info": {
+            "first_name": "Amanda",
+            "last_name": "Foster",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "CTO",
+            "department": "Engineering",
+            "subdepartment": "Executive",
+            "hire_date": "2014-03-01",
+            "employment_status": "Active",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-016",
+            "manager_name": "CEO John Reynolds"
+          },
+          "compensation": {
+            "salary_band": "E2",
+            "base_salary": 375000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Executive Suite",
+            "floor": "20th",
+            "work_location_type": "Hybrid"
+          },
+          "time_off": {
+            "vacation_balance": 35,
+            "sick_balance": 30,
+            "personal_days": 5,
+            "floating_holiday": 3
+          }
+        },
+        {
+          "worker_id": "WD-EMP-017",
+          "personal_info": {
+            "first_name": "Kevin",
+            "last_name": "Murphy",
+            "preferred_name": null
+          },
+          "employment_info": {
+            "job_title": "Software Engineer II",
+            "department": "Engineering",
+            "subdepartment": "Application Development",
+            "hire_date": "2023-02-06",
+            "employment_status": "Terminated",
+            "worker_type": "Full-Time",
+            "manager_id": "WD-EMP-007",
+            "manager_name": "David Chen"
+          },
+          "compensation": {
+            "salary_band": "L2",
+            "base_salary": 115000,
+            "currency": "USD",
+            "pay_frequency": "Bi-Weekly"
+          },
+          "location": {
+            "office": "San Francisco HQ",
+            "building": "Tower B",
+            "floor": "4th",
+            "work_location_type": "On-Site"
+          },
+          "time_off": {
+            "vacation_balance": 0,
+            "sick_balance": 0,
+            "personal_days": 0,
+            "floating_holiday": 0
+          },
+          "termination_info": {
+            "termination_date": "2026-04-18",
+            "termination_type": "Voluntary",
+            "termination_reason": "Better Opportunity"
+          }
+        }
+      ]
+    },
+    "job_requisitions": {
+      "total_count": 3,
+      "page": 1,
+      "page_size": 50,
+      "has_more": false,
+      "requisitions": [
+        {
+          "requisition_id": "WD-JOB-001",
+          "title": "Staff Software Engineer - Cloud Infrastructure",
+          "department": "Engineering",
+          "subdepartment": "Infrastructure",
+          "location": "San Francisco HQ or Remote (US)",
+          "employment_type": "Full-Time",
+          "job_posting_date": "2026-04-15",
+          "hiring_manager": {
+            "worker_id": "WD-EMP-007",
+            "name": "David Chen"
+          },
+          "description": "We are looking for a Staff Software Engineer to lead our cloud infrastructure team. You will architect and implement scalable, resilient systems that support our platform. This is a high-impact role requiring deep technical expertise and the ability to influence engineering strategy across the organization.",
+          "responsibilities": [
+            "Design and implement cloud-native infrastructure using Kubernetes and Terraform",
+            "Lead architecture decisions for multi-region deployments",
+            "Mentor senior engineers and drive technical excellence",
+            "Collaborate with product and engineering teams to define technical roadmaps",
+            "Establish best practices for reliability, security, and observability"
+          ],
+          "required_qualifications": [
+            "8+ years of software engineering experience",
+            "Deep expertise in distributed systems architecture",
+            "Strong experience with Kubernetes, Docker, and cloud platforms (AWS/GCP)",
+            "Proficiency in infrastructure-as-code tools (Terraform, CloudFormation)",
+            "Experience with monitoring, logging, and observability stacks",
+            "Excellent communication and collaboration skills"
+          ],
+          "preferred_qualifications": [
+            "Experience with service mesh technologies (Istio, Linkerd)",
+            "Background in platform engineering or developer experience",
+            "Experience with Go or Rust programming languages",
+            "Knowledge of security best practices for cloud infrastructure"
+          ],
+          "status": "Open",
+          "open_positions": 1,
+          "priority": "High"
+        },
+        {
+          "requisition_id": "WD-JOB-002",
+          "title": "Senior Product Designer - Design Systems",
+          "department": "Design",
+          "subdepartment": "Product Design",
+          "location": "San Francisco HQ or Hybrid",
+          "employment_type": "Full-Time",
+          "job_posting_date": "2026-05-01",
+          "hiring_manager": {
+            "worker_id": "WD-EMP-012",
+            "name": "Lisa Anderson"
+          },
+          "description": "Join our design team to build and evolve our design system. You will create consistent, accessible, and beautiful components that empower product teams to ship excellent user experiences. This role bridges the gap between design and engineering, requiring both strong design sensibility and technical collaboration.",
+          "responsibilities": [
+            "Design and maintain components in our design system",
+            "Create and maintain comprehensive design documentation",
+            "Collaborate with engineering to ensure design fidelity in implementation",
+            "Conduct usability testing and iterate on component designs",
+            "Establish and evolve design tokens and visual standards"
+          ],
+          "required_qualifications": [
+            "5+ years of product design experience",
+            "Strong portfolio demonstrating UI/UX skills and design systems work",
+            "Proficiency with Figma and design handoff tools",
+            "Experience with design tokens and component architecture",
+            "Understanding of accessibility standards (WCAG)",
+            "Experience working with engineering teams in Agile environments"
+          ],
+          "preferred_qualifications": [
+            "Experience building design systems at scale",
+            "Knowledge of front-end development (HTML, CSS, React)",
+            "Background in data visualization or complex information design"
+          ],
+          "status": "Open",
+          "open_positions": 1,
+          "priority": "Medium"
+        },
+        {
+          "requisition_id": "WD-JOB-003",
+          "title": "Machine Learning Engineer - NLP",
+          "department": "Data & Analytics",
+          "subdepartment": "Machine Learning",
+          "location": "New York Office or Remote (US)",
+          "employment_type": "Full-Time",
+          "job_posting_date": "2026-05-10",
+          "hiring_manager": {
+            "worker_id": "WD-EMP-011",
+            "name": "Robert Kim"
+          },
+          "description": "We are seeking an ML Engineer to join our NLP team. You will build and deploy large language models and natural language processing systems that power our product features. This role sits at the intersection of research and production, requiring both strong ML foundations and engineering skills.",
+          "responsibilities": [
+            "Develop and fine-tune large language models for product features",
+            "Build and maintain ML pipelines for training and inference",
+            "Optimize model performance for latency and cost",
+            "Collaborate with data scientists on research and experimentation",
+            "Implement ML best practices for reproducibility and testing"
+          ],
+          "required_qualifications": [
+            "4+ years of machine learning engineering experience",
+            "Strong background in NLP and transformer models",
+            "Experience with ML frameworks (PyTorch, TensorFlow)",
+            "Proficiency in Python and cloud ML platforms",
+            "Understanding of MLOps practices and deployment patterns",
+            "Experience with LLM fine-tuning and prompt engineering"
+          ],
+          "preferred_qualifications": [
+            "Experience with distributed training for large models",
+            "Background in search or recommendation systems",
+            "Knowledge of model compression and optimization techniques"
+          ],
+          "status": "Open",
+          "open_positions": 2,
+          "priority": "High"
+        }
+      ]
+    }
+  },
+  "links": {
+    "self": "/workers?page=1&page_size=50",
+    "next": null,
+    "previous": null
+  }
+}

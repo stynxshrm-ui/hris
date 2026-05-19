@@ -1,0 +1,45 @@
+# render.yaml — Render deployment configuration for SmartHRIS API
+# Docs: https://render.com/docs/blueprint-spec
+#
+# The server/ imports from ../agent/, so both packages must be installed
+# during the build step. Render runs commands from the repo root by default.
+
+services:
+  - type: web
+    name: smarthris-api
+    runtime: node
+    plan: free
+    region: oregon
+
+    # Install agent deps first (server imports from ../agent/), then server deps
+    buildCommand: npm install --prefix agent && npm install --prefix server
+
+    # Render sets PORT automatically; our server reads process.env.PORT
+    startCommand: node server/index.js
+
+    # Render pings this path to confirm the service is healthy before routing traffic
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # ── Anthropic ──────────────────────────────────────────────────────────
+      # Set this in the Render dashboard — never commit the actual key
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      # ── Supabase ───────────────────────────────────────────────────────────
+      # env.js aliases NEXT_PUBLIC_SUPABASE_URL → SUPABASE_URL if needed;
+      # set the bare SUPABASE_URL here so the server never needs the NEXT_PUBLIC_ prefix
+      - key: SUPABASE_URL
+        sync: false
+
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+      # ── CORS ───────────────────────────────────────────────────────────────
+      # Set to your Vercel deployment URL after the first Vercel deploy.
+      # Example: https://smarthris.vercel.app
+      - key: FRONTEND_URL
+        sync: false
