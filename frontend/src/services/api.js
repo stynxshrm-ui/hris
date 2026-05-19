@@ -14,7 +14,7 @@
  *   - Return the parsed JSON body on success
  */
 
-const BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/$/, '')
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '')
 
 async function request(path, options = {}) {
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -92,6 +92,17 @@ export async function getLearning() {
  */
 export async function getAnalytics() {
   return request('/api/analytics')
+}
+
+// ── GET /api/employees/:id/enrollments ───────────────────────────────────────
+/**
+ * Fetch all course enrollments for a single employee.
+ *
+ * @param {string} employeeId UUID of the employee.
+ * @returns {Promise<{ employee: object, summary: object, enrollments: object[] }>}
+ */
+export async function getEmployeeEnrollments(employeeId) {
+  return request(`/api/employees/${employeeId}/enrollments`)
 }
 
 // ── POST /api/transfer ────────────────────────────────────────────────────────

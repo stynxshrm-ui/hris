@@ -31,6 +31,7 @@ import { orchestrate } from '../agent/mistral_orchestrator.js'
 
 import {
   searchEmployees,
+  getCourseEnrollments,
   getComplianceAlerts,
   getHeadcountSummary,
   transferEmployee,
@@ -52,17 +53,16 @@ const supabase = createClient(
 const app = express()
 const PORT = Number(process.env.PORT) || 3001
 
-// CORS: production allows only FRONTEND_URL; development also allows localhost.
+// CORS: production allows only FRONTEND_URL; development also allows any localhost origin.
 // Set FRONTEND_URL on Render to the Vercel deployment URL.
-const ALLOWED_ORIGINS = [
-  process.env.FRONTEND_URL,
-  ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:3000'] : []),
-].filter(Boolean)
+const ALLOWED_ORIGINS = [process.env.FRONTEND_URL].filter(Boolean)
+const IS_DEV = process.env.NODE_ENV !== 'production'
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow server-to-server requests (no Origin header) and listed origins
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true)
+    if (!origin) return callback(null, true)
+    if (IS_DEV && /^https?:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true)
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true)
     callback(new Error(`CORS: origin not allowed — ${origin}`))
   },
   credentials: true,
@@ -104,6 +104,19 @@ app.post('/api/chat', async (req, res) => {
   } catch (err) {
     console.error('[POST /api/chat]', err.message)
     res.status(500).json({ error: err.message, code: err.code ?? 'INTERNAL_ERROR' })
+  }
+})
+
+// ── GET /api/employees/:id/enrollments ───────────────────────────────────────
+// Returns all course enrollments for a single employee with full course metadata.
+app.get('/api/employees/:id/enrollments', async (req, res) => {
+  try {
+    const result = await getCourseEnrollments(req.params.id)
+    if (!result.success) return res.status(500).json({ error: result.error })
+    res.json(result.data)
+  } catch (err) {
+    console.error('[GET /api/employees/:id/enrollments]', err.message)
+    res.status(500).json({ error: err.message })
   }
 })
 
