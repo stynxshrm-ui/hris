@@ -87,10 +87,11 @@ app.post('/api/chat', async (req, res) => {
   try {
     const result = await orchestrate(message, conversationHistory)
 
-    // Parse the structured JSON string so the frontend receives a plain object
+    // Mistral sometimes wraps JSON in a markdown code fence — strip it first
+    const raw = result.response.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
     let parsed
     try {
-      parsed = JSON.parse(result.response)
+      parsed = JSON.parse(raw)
     } catch {
       parsed = { type: 'text', data: { content: result.response } }
     }
