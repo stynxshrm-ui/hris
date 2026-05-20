@@ -8,7 +8,59 @@ import { useToast } from '../components/ui/Toaster.jsx'
 import { useLanguage } from '../contexts/LanguageContext.jsx'
 
 // ── Suggestion icons (order matches t.aiAssistant.suggestions array) ──────────
-const SUGGESTION_ICONS = [AlertTriangle, Users, BookOpen, ChevronRight]
+const SUGGESTION_ICONS = [AlertTriangle, Users, Clock, ChevronRight]
+
+// ── Canned HR Data answers (index matches suggestions array, language-agnostic) ─
+const HR_CANNED_ANSWERS = [
+  // Q1: overdue training
+  {
+    type: 'table',
+    data: [
+      { employee: 'Carlos Rodriguez', department: 'Information Security', course: 'Security Awareness Training',           due: '15 Apr 2026' },
+      { employee: 'Robert Kim',       department: 'Data & Analytics',     course: 'Data Privacy & GDPR Compliance',       due: '31 Mar 2026' },
+      { employee: 'Kevin Murphy',     department: 'Engineering',           course: 'Kubernetes & Cloud Infrastructure',    due: '15 Mar 2026' },
+      { employee: 'Lisa Anderson',    department: 'Design',                course: 'UX Research Methods & Usability Testing', due: '1 Apr 2026' },
+      { employee: 'Rachel Kowalski',  department: 'Sales',                 course: 'Enterprise Sales Methodologies',       due: '31 Mar 2026' },
+      { employee: 'Aisha Patel',      department: 'Data & Analytics',      course: 'Machine Learning Engineering Foundations', due: '15 Apr 2026' },
+    ],
+  },
+  // Q2: average tenure by department
+  {
+    type: 'summary',
+    data: {
+      explanation: 'Engineering has the highest average tenure at 8.9 years, anchored by long-tenured staff including Amanda Foster (12.2 yrs) and David Chen (10.3 yrs). Design is the most recently built team at 5.4 years average.',
+      by_department: [
+        { department: 'Engineering',         avg_tenure_years: 8.9, headcount: 5 },
+        { department: 'Information Security', avg_tenure_years: 8.2, headcount: 2 },
+        { department: 'Product',              avg_tenure_years: 7.4, headcount: 2 },
+        { department: 'Sales',                avg_tenure_years: 7.2, headcount: 2 },
+        { department: 'Data & Analytics',     avg_tenure_years: 6.9, headcount: 2 },
+        { department: 'Design',               avg_tenure_years: 5.4, headcount: 2 },
+      ],
+    },
+  },
+  // Q3: on leave in Engineering
+  {
+    type: 'summary',
+    data: {
+      explanation: '1 Engineering team member is currently on approved leave.',
+      employees: [
+        { name: 'Marcus Johnson', title: 'Senior Software Engineer', type: 'Sick Leave', start: '14 Apr 2026', end: '16 May 2026', days: 25 },
+      ],
+    },
+  },
+  // Q4: upcoming pending leave requests
+  {
+    type: 'table',
+    data: [
+      { employee: 'Carlos Rodriguez', department: 'Information Security', type: 'Sick',   start: '22 May 2026', days: 1 },
+      { employee: 'Rachel Kowalski',  department: 'Sales',                 type: 'Annual', start: '2 Jun 2026',  days: 5 },
+      { employee: 'Jennifer Martinez',department: 'Engineering',           type: 'Annual', start: '9 Jun 2026',  days: 5 },
+      { employee: 'David Chen',       department: 'Engineering',           type: 'Annual', start: '14 Jul 2026', days: 5 },
+      { employee: 'Robert Kim',       department: 'Data & Analytics',      type: 'Annual', start: '3 Aug 2026',  days: 5 },
+    ],
+  },
+]
 
 // ── Canned policy answers (indexed to match policySuggestions in translations) ─
 const CANNED_ANSWERS = {
@@ -654,13 +706,20 @@ export default function AIAssistant() {
           setMessages(prev => [...prev, { role: 'assistant', answer: json.answer, isPolicy: true }])
         }
       } else {
-        const json = await sendChat(msg, history)
-        let response = json.response
-        if (!response || typeof response !== 'object') {
-          response = { type: 'text', data: { content: String(response) } }
+        const suggestionIndex = (t.aiAssistant.suggestions ?? []).indexOf(msg)
+        const canned = HR_CANNED_ANSWERS[suggestionIndex]
+        if (suggestionIndex !== -1 && canned) {
+          await new Promise(resolve => setTimeout(resolve, 1800))
+          setMessages(prev => [...prev, { role: 'assistant', response: canned }])
+        } else {
+          const json = await sendChat(msg, history)
+          let response = json.response
+          if (!response || typeof response !== 'object') {
+            response = { type: 'text', data: { content: String(response) } }
+          }
+          setMessages(prev => [...prev, { role: 'assistant', response }])
+          setHistory(json.cleanHistory ?? [])
         }
-        setMessages(prev => [...prev, { role: 'assistant', response }])
-        setHistory(json.cleanHistory ?? [])
       }
     } catch (err) {
       toast.error(err.message)
