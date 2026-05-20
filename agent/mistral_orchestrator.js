@@ -157,11 +157,18 @@ const RESPONSE_FORMAT = `\
 Every response MUST be a single valid JSON object with exactly two top-level fields:
   { "type": "<table|alert_list|summary|text>", "data": <object or array> }
 
-  "table"      — ordered list of employee or enrollment rows; data is an array.
+  "table"      — any list of rows: employees, enrollments, OR department headcount
+                 breakdowns. data MUST be an array of flat objects. For headcount,
+                 use the by_department array directly as data (one row per dept).
   "alert_list" — compliance alerts; data has overdue_mandatory_training[] and
                  expiring_certifications[].
-  "summary"    — aggregate counts or a transfer confirmation; data is an object.
+  "summary"    — scalar aggregates or a transfer confirmation; data is a flat object
+                 with only primitive values (strings/numbers). Do NOT put arrays
+                 inside a summary — use "table" instead.
   "text"       — single record, clarification, or error; data is an object or string.
+
+For headcount queries: return type "table" with data = the by_department array.
+Append a totals row as the last element if useful.
 
 Add an "explanation" key inside data if a narrative note is needed. Never produce
 prose outside this JSON envelope. Never return raw tool output verbatim.`

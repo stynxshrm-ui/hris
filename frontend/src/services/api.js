@@ -37,6 +37,16 @@ async function request(path, options = {}) {
   return response.json()
 }
 
+// ── GET /api/health — fire-and-forget warm-up ping ───────────────────────────
+/**
+ * Sends a cheap health-check request so the Render server wakes from cold start
+ * before the user navigates to a data-heavy page. Call this once on app mount.
+ * Errors are swallowed — this is best-effort only.
+ */
+export function warmApi() {
+  fetch(`${BASE_URL}/api/health`).catch(() => {})
+}
+
 // ── POST /api/chat ────────────────────────────────────────────────────────────
 /**
  * Send a natural-language HR query to the Claude orchestrator.
@@ -67,6 +77,17 @@ export async function getEmployees() {
   return request('/api/employees')
 }
 
+// ── GET /api/employees/:id ────────────────────────────────────────────────────
+/**
+ * Fetch a single employee's full profile including compensation and HR fields.
+ *
+ * @param {string} employeeId UUID of the employee.
+ * @returns {Promise<object>}
+ */
+export async function getEmployee(employeeId) {
+  return request(`/api/employees/${employeeId}`)
+}
+
 // ── GET /api/learning ─────────────────────────────────────────────────────────
 /**
  * Fetch all courses with per-course enrollment counts broken down by status.
@@ -94,6 +115,21 @@ export async function getAnalytics() {
   return request('/api/analytics')
 }
 
+// ── GET /api/compliance ───────────────────────────────────────────────────────
+/**
+ * Fetch overdue mandatory training and certifications expiring within 30 days.
+ *
+ * @returns {Promise<{
+ *   generated_at:               string,
+ *   total_alerts:               number,
+ *   overdue_mandatory_training: object[],
+ *   expiring_certifications:    object[],
+ * }>}
+ */
+export async function getCompliance() {
+  return request('/api/compliance')
+}
+
 // ── GET /api/employees/:id/enrollments ───────────────────────────────────────
 /**
  * Fetch all course enrollments for a single employee.
@@ -103,6 +139,17 @@ export async function getAnalytics() {
  */
 export async function getEmployeeEnrollments(employeeId) {
   return request(`/api/employees/${employeeId}/enrollments`)
+}
+
+// ── GET /api/employees/:id/leave-requests ────────────────────────────────────
+/**
+ * Fetch all leave requests for a single employee.
+ *
+ * @param {string} employeeId UUID of the employee.
+ * @returns {Promise<{ data: object[], total: number }>}
+ */
+export async function getEmployeeLeaveRequests(employeeId) {
+  return request(`/api/employees/${employeeId}/leave-requests`)
 }
 
 // ── POST /api/transfer ────────────────────────────────────────────────────────

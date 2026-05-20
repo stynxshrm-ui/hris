@@ -30,6 +30,7 @@
 import { orchestrate } from '../agent/mistral_orchestrator.js'
 
 import {
+  getEmployee,
   searchEmployees,
   getCourseEnrollments,
   getComplianceAlerts,
@@ -69,6 +70,23 @@ app.use(cors({
 }))
 app.use(express.json())
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Race `promise` against a timeout. Rejects with `message` if `ms` elapses first.
+ * @template T
+ * @param {Promise<T>} promise
+ * @param {number}     ms
+ * @param {string}     message
+ * @returns {Promise<T>}
+ */
+function withTimeout(promise, ms, message) {
+  const timer = new Promise((_, reject) =>
+    setTimeout(() => reject(Object.assign(new Error(message), { code: 'TIMEOUT' })), ms)
+  )
+  return Promise.race([promise, timer])
+}
+
 // ── GET /api/health ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', ts: new Date().toISOString() })
@@ -78,14 +96,28 @@ app.get('/api/health', (_req, res) => {
 // Body: { message: string, conversationHistory?: CleanHistoryTurn[] }
 // Returns: { intent, response: object, cleanHistory }
 app.post('/api/chat', async (req, res) => {
-  const { message, conversationHistory = [] } = req.body
+  const { message, conversationHistory } = req.body ?? {}
 
-  if (!message || typeof message !== 'string') {
-    return res.status(400).json({ error: 'message must be a non-empty string' })
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({
+      error: 'message must be a non-empty string',
+      code:  'INVALID_INPUT',
+    })
+  }
+
+  if (conversationHistory !== undefined && !Array.isArray(conversationHistory)) {
+    return res.status(400).json({
+      error: 'conversationHistory must be an array',
+      code:  'INVALID_INPUT',
+    })
   }
 
   try {
-    const result = await orchestrate(message, conversationHistory)
+    const result = await withTimeout(
+      orchestrate(message.trim(), conversationHistory ?? []),
+      30_000,
+      'The AI assistant took too long to respond. Please try again.'
+    )
 
     // Mistral sometimes wraps JSON in a markdown code fence — strip it first
     const raw = result.response.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
@@ -103,20 +135,77 @@ app.post('/api/chat', async (req, res) => {
     })
   } catch (err) {
     console.error('[POST /api/chat]', err.message)
-    res.status(500).json({ error: err.message, code: err.code ?? 'INTERNAL_ERROR' })
+    const status = err.code === 'TIMEOUT' ? 504 : 500
+    res.status(status).json({ error: err.message, code: err.code ?? 'INTERNAL_ERROR' })
+  }
+})
+
+// ── GET /api/compliance ───────────────────────────────────────────────────────
+// Returns overdue mandatory training and certifications expiring within 30 days.
+app.get('/api/compliance', async (_req, res) => {
+  try {
+    const result = await getComplianceAlerts()
+    if (!result.success) return res.status(500).json({ error: result.error, code: 'DB_ERROR' })
+    res.json(result.data)
+  } catch (err) {
+    console.error('[GET /api/compliance]', err.message)
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
   }
 })
 
 // ── GET /api/employees/:id/enrollments ───────────────────────────────────────
 // Returns all course enrollments for a single employee with full course metadata.
 app.get('/api/employees/:id/enrollments', async (req, res) => {
+  const { id } = req.params
+  if (!id || !id.trim()) {
+    return res.status(400).json({ error: 'Employee id is required', code: 'INVALID_INPUT' })
+  }
   try {
-    const result = await getCourseEnrollments(req.params.id)
-    if (!result.success) return res.status(500).json({ error: result.error })
+    const result = await getCourseEnrollments(id)
+    if (!result.success) return res.status(500).json({ error: result.error, code: 'DB_ERROR' })
     res.json(result.data)
   } catch (err) {
     console.error('[GET /api/employees/:id/enrollments]', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
+  }
+})
+
+// ── GET /api/employees/:id/leave-requests ────────────────────────────────────
+// Returns all leave requests for a single employee, newest first.
+app.get('/api/employees/:id/leave-requests', async (req, res) => {
+  const { id } = req.params
+  if (!id || !id.trim()) {
+    return res.status(400).json({ error: 'Employee id is required', code: 'INVALID_INPUT' })
+  }
+  try {
+    const { data, error } = await supabase
+      .from('leave_requests')
+      .select('id, type, start_date, end_date, days, status, reason, created_at')
+      .eq('employee_id', id)
+      .order('created_at', { ascending: false })
+
+    if (error) return res.status(500).json({ error: error.message, code: 'DB_ERROR' })
+    res.json({ data, total: data.length })
+  } catch (err) {
+    console.error('[GET /api/employees/:id/leave-requests]', err.message)
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
+  }
+})
+
+// ── GET /api/employees/:id ────────────────────────────────────────────────────
+// Returns a single employee's full profile including compensation and HR fields.
+app.get('/api/employees/:id', async (req, res) => {
+  const { id } = req.params
+  if (!id || !id.trim()) {
+    return res.status(400).json({ error: 'Employee id is required', code: 'INVALID_INPUT' })
+  }
+  try {
+    const result = await getEmployee(id.trim())
+    if (!result.success) return res.status(404).json({ error: result.error, code: 'NOT_FOUND' })
+    res.json(result.data)
+  } catch (err) {
+    console.error('[GET /api/employees/:id]', err.message)
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
   }
 })
 
@@ -125,11 +214,11 @@ app.get('/api/employees/:id/enrollments', async (req, res) => {
 app.get('/api/employees', async (_req, res) => {
   try {
     const result = await searchEmployees({})
-    if (!result.success) return res.status(500).json({ error: result.error })
+    if (!result.success) return res.status(500).json({ error: result.error, code: 'DB_ERROR' })
     res.json({ data: result.data, total: result.total })
   } catch (err) {
     console.error('[GET /api/employees]', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
   }
 })
 
@@ -150,7 +239,7 @@ app.get('/api/learning', async (_req, res) => {
       `)
       .order('title')
 
-    if (error) return res.status(500).json({ error: error.message })
+    if (error) return res.status(500).json({ error: error.message, code: 'DB_ERROR' })
 
     const data = courses.map(c => {
       const status_breakdown = c.enrollments.reduce((acc, e) => {
@@ -173,7 +262,7 @@ app.get('/api/learning', async (_req, res) => {
     res.json({ data, total: data.length })
   } catch (err) {
     console.error('[GET /api/learning]', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
   }
 })
 
@@ -192,9 +281,9 @@ app.get('/api/analytics', async (_req, res) => {
       supabase.from('enrollments').select('status'),
     ])
 
-    if (!headcountResult.success) return res.status(500).json({ error: headcountResult.error })
-    if (!alertsResult.success)   return res.status(500).json({ error: alertsResult.error })
-    if (enrErr)                  return res.status(500).json({ error: enrErr.message })
+    if (!headcountResult.success) return res.status(500).json({ error: headcountResult.error, code: 'DB_ERROR' })
+    if (!alertsResult.success)   return res.status(500).json({ error: alertsResult.error,   code: 'DB_ERROR' })
+    if (enrErr)                  return res.status(500).json({ error: enrErr.message,        code: 'DB_ERROR' })
 
     const total     = enrollments.length
     const completed = enrollments.filter(e => e.status === 'completed').length
@@ -206,12 +295,14 @@ app.get('/api/analytics', async (_req, res) => {
       headcount:                   headcountResult.data,
       overdue_training_count:      alertsResult.data.overdue_mandatory_training.length,
       expiring_certifications_30d: alertsResult.data.expiring_certifications.length,
+      top_overdue_training:        alertsResult.data.overdue_mandatory_training.slice(0, 3),
+      top_expiring_certs:          alertsResult.data.expiring_certifications.slice(0, 3),
       avg_course_completion_rate,
       generated_at:                new Date().toISOString(),
     })
   } catch (err) {
     console.error('[GET /api/analytics]', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
   }
 })
 
@@ -221,19 +312,22 @@ app.get('/api/analytics', async (_req, res) => {
 // Enrollment changes are NOT applied automatically — call
 // confirmTransferEnrollments() separately after reviewing the diff.
 app.post('/api/transfer', async (req, res) => {
-  const { employeeId, newDepartment } = req.body
+  const { employeeId, newDepartment } = req.body ?? {}
 
-  if (!employeeId || !newDepartment) {
-    return res.status(400).json({ error: 'employeeId and newDepartment are required' })
+  if (!employeeId || typeof employeeId !== 'string' || !employeeId.trim()) {
+    return res.status(400).json({ error: 'employeeId must be a non-empty string', code: 'INVALID_INPUT' })
+  }
+  if (!newDepartment || typeof newDepartment !== 'string' || !newDepartment.trim()) {
+    return res.status(400).json({ error: 'newDepartment must be a non-empty string', code: 'INVALID_INPUT' })
   }
 
   try {
-    const result = await transferEmployee(employeeId, newDepartment)
-    if (!result.success) return res.status(400).json({ error: result.error })
+    const result = await transferEmployee(employeeId.trim(), newDepartment.trim())
+    if (!result.success) return res.status(400).json({ error: result.error, code: 'TRANSFER_FAILED' })
     res.json(result.data)
   } catch (err) {
     console.error('[POST /api/transfer]', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
   }
 })
 
@@ -241,10 +335,10 @@ app.post('/api/transfer', async (req, res) => {
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   if (err.type === 'entity.parse.failed') {
-    return res.status(400).json({ error: 'Invalid JSON in request body' })
+    return res.status(400).json({ error: 'Invalid JSON in request body', code: 'INVALID_JSON' })
   }
   console.error('[server] Unhandled error:', err.message)
-  res.status(500).json({ error: 'Internal server error' })
+  res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' })
 })
 
 // ── Start ─────────────────────────────────────────────────────────────────────

@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
-  Users, Briefcase, ShieldAlert, GraduationCap,
-  TrendingUp, TrendingDown, Minus, AlertCircle, Clock, ArrowRight,
+  Users, Briefcase, ShieldAlert, GraduationCap, BookOpen,
+  TrendingUp, TrendingDown, Minus, Clock, ArrowRight, AlertCircle,
 } from 'lucide-react'
+import { useToast } from '../components/ui/Toaster.jsx'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { getAnalytics } from '../services/api'
+import { REQUISITIONS } from '../data/requisitions'
 
 // ── Skeleton primitive ────────────────────────────────────────────────────────
 function Bone({ className }) {
@@ -65,38 +67,45 @@ const ACTIVITY = [
   { text: 'Aisha Patel completed Advanced React Patterns',   time: '2 days ago',       dot: 'bg-emerald-400' },
 ]
 
-const TOP_ALERTS = [
-  {
-    type: 'overdue',
-    name: 'Robert Kim',
-    dept: 'Information Security',
-    detail: 'GDPR Fundamentals — 49 days overdue',
-  },
-  {
-    type: 'overdue',
-    name: 'Carlos Rodriguez',
-    dept: 'Sales',
-    detail: 'Security Awareness Training — 34 days overdue',
-  },
-  {
-    type: 'expiring',
-    name: 'Sarah Williams',
-    dept: 'Engineering',
-    detail: 'Python for Data Analysis — expires Jun 12',
-  },
-]
+const CACHE_KEY = 'smarthris_analytics_v1'
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+function readCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const { data, ts } = JSON.parse(raw)
+    if (Date.now() - ts > CACHE_TTL) return null
+    return data
+  } catch {
+    return null
+  }
+}
+
+function writeCache(data) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }))
+  } catch {}
+}
 
 // ── Dashboard page ────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [analytics, setAnalytics] = useState(null)
-  const [loading,   setLoading]   = useState(true)
-  const [error,     setError]     = useState(null)
+  const toast   = useToast()
+  const cached  = readCache()
+  const [analytics, setAnalytics] = useState(cached)
+  const [loading,   setLoading]   = useState(!cached)
 
   useEffect(() => {
     getAnalytics()
-      .then(setAnalytics)
-      .catch(err => setError(err.message))
+      .then(data => {
+        writeCache(data)
+        setAnalytics(data)
+      })
+      .catch(err => {
+        if (!analytics) toast.error(`Failed to load analytics: ${err.message}`)
+      })
       .finally(() => setLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const today = new Date().toLocaleDateString('en-US', {
@@ -105,6 +114,24 @@ export default function Dashboard() {
 
   const totals    = analytics?.headcount?.totals       ?? {}
   const chartData = analytics?.headcount?.by_department ?? []
+
+  const topAlerts = useMemo(() => {
+    if (!analytics) return []
+    return [
+      ...(analytics.top_overdue_training ?? []).map(a => ({
+        type:   'overdue',
+        name:   a.employee_name,
+        dept:   a.department ?? '—',
+        detail: `${a.course_title} — ${a.days_overdue} days overdue`,
+      })),
+      ...(analytics.top_expiring_certs ?? []).map(a => ({
+        type:   'expiring',
+        name:   a.employee_name,
+        dept:   a.department ?? '—',
+        detail: `${a.course_title} — expires ${new Date(a.expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+      })),
+    ].slice(0, 3)
+  }, [analytics])
 
   const kpis = [
     {
@@ -117,8 +144,8 @@ export default function Dashboard() {
     },
     {
       label:   'Open Requisitions',
-      value:   '0',
-      sub:     'No open positions',
+      value:   REQUISITIONS.length,
+      sub:     `${REQUISITIONS.filter(r => r.status === 'Interview').length} in interview · ${REQUISITIONS.filter(r => r.status === 'Offer').length} at offer`,
       icon:    Briefcase,
       iconCls: 'bg-emerald-100 text-emerald-600',
       trend:   'neutral',
@@ -139,6 +166,14 @@ export default function Dashboard() {
       iconCls: 'bg-amber-100 text-amber-600',
       trend:   !loading && (analytics?.expiring_certifications_30d ?? 0) > 0 ? 'up' : 'neutral',
     },
+    {
+      label:   'Course Completion',
+      value:   loading ? '—' : `${analytics?.avg_course_completion_rate ?? 0}%`,
+      sub:     'Company-wide average',
+      icon:    BookOpen,
+      iconCls: 'bg-violet-100 text-violet-600',
+      trend:   'neutral',
+    },
   ]
 
   return (
@@ -150,18 +185,10 @@ export default function Dashboard() {
         <p className="text-sm text-slate-500 mt-1">{today}</p>
       </div>
 
-      {/* Error banner */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
-          <AlertCircle size={15} className="shrink-0" />
-          Failed to load analytics data: {error}
-        </div>
-      )}
-
       {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         {loading
-          ? Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
+          ? Array.from({ length: 5 }).map((_, i) => <KpiSkeleton key={i} />)
           : kpis.map(k => <KpiCard key={k.label} {...k} />)
         }
       </div>
@@ -246,20 +273,37 @@ export default function Dashboard() {
           </div>
 
           <ul className="divide-y divide-slate-50 flex-1">
-            {TOP_ALERTS.map((alert, i) => (
-              <li key={i} className="px-5 py-3.5">
-                <div className="flex items-start gap-2.5">
-                  <span className={`mt-1 shrink-0 w-2 h-2 rounded-full ${
-                    alert.type === 'overdue' ? 'bg-red-400' : 'bg-amber-400'
-                  }`} />
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">{alert.name}</p>
-                    <p className="text-xs text-slate-400">{alert.dept}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{alert.detail}</p>
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <li key={i} className="px-5 py-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <Bone className="w-2 h-2 rounded-full mt-1 shrink-0" />
+                    <div className="space-y-1.5 flex-1">
+                      <Bone className="h-4 w-28" />
+                      <Bone className="h-3 w-20" />
+                      <Bone className="h-3 w-36" />
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              ))
+            ) : topAlerts.length > 0 ? (
+              topAlerts.map((alert, i) => (
+                <li key={i} className="px-5 py-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <span className={`mt-1 shrink-0 w-2 h-2 rounded-full ${
+                      alert.type === 'overdue' ? 'bg-red-400' : 'bg-amber-400'
+                    }`} />
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">{alert.name}</p>
+                      <p className="text-xs text-slate-400">{alert.dept}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{alert.detail}</p>
+                    </div>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li className="px-5 py-8 text-center text-sm text-slate-400">No compliance alerts</li>
+            )}
           </ul>
 
           <div className="px-5 py-3 border-t border-slate-100 mt-auto">

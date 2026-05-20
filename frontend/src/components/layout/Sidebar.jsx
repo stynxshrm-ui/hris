@@ -2,7 +2,10 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   Users,
-  GraduationCap,
+  Network,
+  DollarSign,
+  CalendarClock,
+  BookOpen,
   ShieldCheck,
   Sparkles,
   BarChart3,
@@ -10,13 +13,34 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 
-const NAV_ITEMS = [
-  { label: 'Dashboard',              path: '/dashboard',    icon: LayoutDashboard },
-  { label: 'Employees',              path: '/employees',    icon: Users },
-  { label: 'Learning & Development', path: '/learning',     icon: GraduationCap },
-  { label: 'Compliance',             path: '/compliance',   icon: ShieldCheck },
-  { label: 'AI Assistant',           path: '/ai-assistant', icon: Sparkles },
-  { label: 'Reports',                path: '/reports',      icon: BarChart3 },
+const NAV_GROUPS = [
+  {
+    items: [
+      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    section: 'People',
+    items: [
+      { label: 'People',         path: '/employees',    icon: Users },
+      { label: 'Organisation',   path: '/organisation', icon: Network },
+      { label: 'Compensation',   path: '/compensation', icon: DollarSign },
+      { label: 'Time & Absence', path: '/time-absence', icon: CalendarClock },
+    ],
+  },
+  {
+    section: 'Learning',
+    items: [
+      { label: 'Course Catalog', path: '/learning',   icon: BookOpen },
+      { label: 'Compliance',     path: '/compliance', icon: ShieldCheck },
+    ],
+  },
+  {
+    items: [
+      { label: 'AI Assistant', path: '/ai-assistant', icon: Sparkles },
+      { label: 'Reports',      path: '/reports',      icon: BarChart3 },
+    ],
+  },
 ]
 
 function NavItem({ item, open }) {
@@ -47,6 +71,21 @@ function NavItem({ item, open }) {
   )
 }
 
+function SectionLabel({ label, open }) {
+  return (
+    <div
+      className={clsx(
+        'px-5 pt-4 pb-1 transition-all duration-300 overflow-hidden whitespace-nowrap',
+        open ? 'opacity-100 h-9' : 'opacity-0 h-0',
+      )}
+    >
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        {label}
+      </span>
+    </div>
+  )
+}
+
 export default function Sidebar({ open }) {
   return (
     <aside
@@ -55,7 +94,7 @@ export default function Sidebar({ open }) {
         open ? 'w-64' : 'w-16',
       )}
     >
-      {/* Section label — only visible when expanded */}
+      {/* Main Menu label — only visible when expanded */}
       <div
         className={clsx(
           'px-5 pt-5 pb-2 transition-all duration-300 overflow-hidden whitespace-nowrap',
@@ -67,10 +106,15 @@ export default function Sidebar({ open }) {
         </span>
       </div>
 
-      {/* Nav items */}
+      {/* Grouped nav */}
       <nav className="flex flex-col gap-0.5 flex-1 pb-4 pt-2">
-        {NAV_ITEMS.map(item => (
-          <NavItem key={item.path} item={item} open={open} />
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={gi}>
+            {group.section && <SectionLabel label={group.section} open={open} />}
+            {group.items.map(item => (
+              <NavItem key={item.path} item={item} open={open} />
+            ))}
+          </div>
         ))}
       </nav>
 
