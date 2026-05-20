@@ -152,6 +152,21 @@ export async function getEmployeeLeaveRequests(employeeId) {
   return request(`/api/employees/${employeeId}/leave-requests`)
 }
 
+// ── POST /api/policy-chat ─────────────────────────────────────────────────────
+/**
+ * Ask a question against the NordTech AB policy documents.
+ *
+ * @param {string} question              User's policy question.
+ * @param {'en'|'sv'} [language='en']   Language of policy documents to query.
+ * @returns {Promise<{ answer: string }>}
+ */
+export async function sendPolicyChat(question, language = 'en') {
+  return request('/api/policy-chat', {
+    method: 'POST',
+    body: JSON.stringify({ question, language }),
+  })
+}
+
 // ── POST /api/transfer ────────────────────────────────────────────────────────
 /**
  * Commit a department transfer for an employee.

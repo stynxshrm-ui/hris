@@ -5,6 +5,7 @@ import {
 import { getEmployees } from '../services/api'
 import { useToast } from '../components/ui/Toaster.jsx'
 import { APPROVED_HEADCOUNT, REQUISITIONS } from '../data/requisitions.js'
+import { useLanguage } from '../contexts/LanguageContext.jsx'
 
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ function UtilBar({ filled, approved }) {
 }
 
 function DepartmentSummary({ employees, loading }) {
+  const { t } = useLanguage()
   const stats = useMemo(() => {
     const map = {}
     for (const emp of employees) {
@@ -78,16 +80,16 @@ function DepartmentSummary({ employees, loading }) {
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
         <Users size={18} className="text-blue-500 shrink-0" />
-        <h2 className="font-semibold text-slate-800">Department Summary</h2>
+        <h2 className="font-semibold text-slate-800">{t.organisation.departmentSummary}</h2>
         {!loading && (
-          <span className="text-xs text-slate-400 ml-1">{stats.length} departments</span>
+          <span className="text-xs text-slate-400 ml-1">{stats.length} {t.organisation.departments}</span>
         )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100">
-              {['Department', 'Employees', 'Open Reqs', 'Headcount Utilisation'].map((h, i) => (
+              {[t.organisation.colDept, t.organisation.colEmployees, t.organisation.colOpenReqs, t.organisation.colHeadcount].map((h, i) => (
                 <th
                   key={h}
                   className={`px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide ${
@@ -162,6 +164,7 @@ function ReqStatusBadge({ status }) {
 const FILTERS = ['All', 'Sourcing', 'Interview', 'Offer']
 
 function OpenRequisitions() {
+  const { t } = useLanguage()
   const [filter, setFilter] = useState('All')
 
   const displayed = filter === 'All'
@@ -172,8 +175,8 @@ function OpenRequisitions() {
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 flex-wrap">
         <Briefcase size={18} className="text-blue-500 shrink-0" />
-        <h2 className="font-semibold text-slate-800">Open Requisitions</h2>
-        <span className="text-xs text-slate-400">{REQUISITIONS.length} open</span>
+        <h2 className="font-semibold text-slate-800">{t.organisation.openRequisitions}</h2>
+        <span className="text-xs text-slate-400">{REQUISITIONS.length} {t.organisation.open}</span>
         <div className="ml-auto flex items-center gap-1">
           {FILTERS.map(f => (
             <button
@@ -183,7 +186,7 @@ function OpenRequisitions() {
                 filter === f ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
-              {f}
+              {f === 'All' ? t.buttons.all : f}
               {f !== 'All' && (
                 <span className="ml-1 opacity-60">
                   {REQUISITIONS.filter(r => r.status === f).length}
@@ -205,7 +208,7 @@ function OpenRequisitions() {
                     {req.department}
                   </span>
                   <span className="text-xs text-slate-400">
-                    Hiring manager:{' '}
+                    {t.organisation.hiringManager}{' '}
                     <span className="text-slate-600 font-medium">{req.hiring_manager}</span>
                   </span>
                 </div>
@@ -213,7 +216,7 @@ function OpenRequisitions() {
               <div className="flex items-center gap-4 shrink-0">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-bold text-slate-700 tabular-nums">{req.days_open}d</p>
-                  <p className="text-[11px] text-slate-400">open</p>
+                  <p className="text-[11px] text-slate-400">{t.organisation.open}</p>
                 </div>
                 <ReqStatusBadge status={req.status} />
                 <span className="text-[11px] text-slate-300 font-mono hidden lg:block">{req.id}</span>
@@ -223,7 +226,7 @@ function OpenRequisitions() {
         ))}
         {displayed.length === 0 && (
           <div className="py-10 text-center text-sm text-slate-400">
-            No requisitions with status <span className="font-medium">{filter}</span>
+            {t.organisation.noRequisitions} <span className="font-medium">{filter}</span>
           </div>
         )}
       </div>
@@ -328,6 +331,7 @@ function OrgNode({ emp, childMap, depth, showTerminated, defaultOpen }) {
 }
 
 function OrgChart({ employees, loading }) {
+  const { t } = useLanguage()
   const [showTerminated, setShowTerminated] = useState(false)
   const [treeKey,      setTreeKey]      = useState(0)
   const [defaultOpen,  setDefaultOpen]  = useState(undefined)
@@ -358,9 +362,9 @@ function OrgChart({ employees, loading }) {
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 flex-wrap">
         <Network size={18} className="text-blue-500 shrink-0" />
-        <h2 className="font-semibold text-slate-800">Org Chart</h2>
+        <h2 className="font-semibold text-slate-800">{t.organisation.orgChart}</h2>
         {!loading && (
-          <span className="text-xs text-slate-400">{activeCount} active</span>
+          <span className="text-xs text-slate-400">{activeCount} {t.organisation.active}</span>
         )}
         <div className="ml-auto flex items-center gap-2">
           <button
@@ -368,20 +372,20 @@ function OrgChart({ employees, loading }) {
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
           >
             {showTerminated ? <EyeOff size={12} /> : <Eye size={12} />}
-            {showTerminated ? 'Hide terminated' : 'Show terminated'}
+            {showTerminated ? t.organisation.hideTerminated : t.organisation.showTerminated}
           </button>
           <div className="w-px h-4 bg-slate-200" />
           <button
             onClick={collapseAll}
             className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            Collapse all
+            {t.organisation.collapseAll}
           </button>
           <button
             onClick={expandAll}
             className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            Expand all
+            {t.organisation.expandAll}
           </button>
         </div>
       </div>
@@ -424,7 +428,8 @@ function OrgChart({ employees, loading }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Organisation() {
-  const toast = useToast()
+  const toast  = useToast()
+  const { t }  = useLanguage()
   const [employees, setEmployees] = useState([])
   const [loading,   setLoading]   = useState(true)
 
@@ -439,8 +444,8 @@ export default function Organisation() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Organisation</h1>
-        <p className="text-sm text-slate-500 mt-1">ACME Corporation · Workday HCM</p>
+        <h1 className="text-2xl font-bold text-slate-800">{t.pages.organisation}</h1>
+        <p className="text-sm text-slate-500 mt-1">NordTech AB · Workday HCM</p>
       </div>
 
       <DepartmentSummary employees={employees} loading={loading} />

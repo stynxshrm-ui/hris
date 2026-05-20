@@ -12,36 +12,39 @@ import {
   HelpCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { useLanguage } from '../../contexts/LanguageContext.jsx'
 
-const NAV_GROUPS = [
-  {
-    items: [
-      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    ],
-  },
-  {
-    section: 'People',
-    items: [
-      { label: 'People',         path: '/employees',    icon: Users },
-      { label: 'Organisation',   path: '/organisation', icon: Network },
-      { label: 'Compensation',   path: '/compensation', icon: DollarSign },
-      { label: 'Time & Absence', path: '/time-absence', icon: CalendarClock },
-    ],
-  },
-  {
-    section: 'Learning',
-    items: [
-      { label: 'Course Catalog', path: '/learning',   icon: BookOpen },
-      { label: 'Compliance',     path: '/compliance', icon: ShieldCheck },
-    ],
-  },
-  {
-    items: [
-      { label: 'AI Assistant', path: '/ai-assistant', icon: Sparkles },
-      { label: 'Reports',      path: '/reports',      icon: BarChart3 },
-    ],
-  },
-]
+function buildGroups(t) {
+  return [
+    {
+      items: [
+        { label: t.nav.dashboard,    path: '/dashboard',    icon: LayoutDashboard },
+      ],
+    },
+    {
+      section: t.nav.sections.people,
+      items: [
+        { label: t.nav.people,        path: '/employees',    icon: Users },
+        { label: t.nav.organisation,  path: '/organisation', icon: Network },
+        { label: t.nav.compensation,  path: '/compensation', icon: DollarSign },
+        { label: t.nav.timeAbsence,   path: '/time-absence', icon: CalendarClock },
+      ],
+    },
+    {
+      section: t.nav.sections.learning,
+      items: [
+        { label: t.nav.courseCatalog, path: '/learning',    icon: BookOpen },
+        { label: t.nav.compliance,    path: '/compliance',  icon: ShieldCheck },
+      ],
+    },
+    {
+      items: [
+        { label: t.nav.aiAssistant,   path: '/ai-assistant', icon: Sparkles },
+        { label: t.nav.reports,       path: '/reports',      icon: BarChart3 },
+      ],
+    },
+  ]
+}
 
 function NavItem({ item, open }) {
   const Icon = item.icon
@@ -87,6 +90,9 @@ function SectionLabel({ label, open }) {
 }
 
 export default function Sidebar({ open }) {
+  const { t } = useLanguage()
+  const groups = buildGroups(t)
+
   return (
     <aside
       className={clsx(
@@ -108,7 +114,7 @@ export default function Sidebar({ open }) {
 
       {/* Grouped nav */}
       <nav className="flex flex-col gap-0.5 flex-1 pb-4 pt-2">
-        {NAV_GROUPS.map((group, gi) => (
+        {groups.map((group, gi) => (
           <div key={gi}>
             {group.section && <SectionLabel label={group.section} open={open} />}
             {group.items.map(item => (
@@ -131,7 +137,7 @@ export default function Sidebar({ open }) {
               open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0',
             )}
           >
-            Help & Support
+            Help &amp; Support
           </span>
         </button>
       </div>

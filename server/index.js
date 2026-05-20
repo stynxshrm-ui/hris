@@ -39,9 +39,15 @@ import {
 } from '../agent/tools.js'
 
 import { createClient } from '@supabase/supabase-js'
+import { Mistral } from '@mistralai/mistralai'
 import ws from 'ws'
 import express from 'express'
 import cors from 'cors'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // ── Supabase client (direct queries not covered by agent tool functions) ──────
 const supabase = createClient(
@@ -49,6 +55,62 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { realtime: { transport: ws } }
 )
+
+// ── Policy index (front matter only, loaded at startup) ───────────────────────
+const POLICIES_DIR = path.resolve(__dirname, '../docs/policies')
+
+const POLICY_FILENAMES = {
+  en: ['employee-handbook-en.md', 'absence-policy-en.md', 'ld-policy-en.md'],
+  sv: ['employee-handbook-sv.md', 'absence-policy-sv.md', 'ld-policy-sv.md'],
+}
+
+function parseFrontMatter(yamlText) {
+  const result = {}
+  let currentKey = null
+  for (const line of yamlText.split('\n')) {
+    const scalar   = line.match(/^(\w+):\s*(.+)$/)
+    const listKey  = line.match(/^(\w+):\s*$/)
+    const listItem = line.match(/^\s+-\s+(.+)$/)
+    if (scalar) {
+      currentKey = scalar[1]
+      result[currentKey] = scalar[2].trim()
+    } else if (listKey) {
+      currentKey = listKey[1]
+      result[currentKey] = []
+    } else if (listItem && currentKey && Array.isArray(result[currentKey])) {
+      result[currentKey].push(listItem[1].trim())
+    }
+  }
+  return result
+}
+
+function readFrontMatterOnly(filePath) {
+  const lines = fs.readFileSync(filePath, 'utf8').split('\n')
+  if (lines[0].trim() !== '---') return null
+  const closeIdx = lines.findIndex((l, i) => i > 0 && l.trim() === '---')
+  if (closeIdx === -1) return null
+  return parseFrontMatter(lines.slice(1, closeIdx).join('\n'))
+}
+
+function stripFrontMatter(content) {
+  const lines = content.split('\n')
+  if (lines[0].trim() !== '---') return content
+  const closeIdx = lines.findIndex((l, i) => i > 0 && l.trim() === '---')
+  return closeIdx === -1 ? content : lines.slice(closeIdx + 1).join('\n').trimStart()
+}
+
+let policyIndex = {}
+try {
+  for (const filenames of Object.values(POLICY_FILENAMES)) {
+    for (const filename of filenames) {
+      const meta = readFrontMatterOnly(path.join(POLICIES_DIR, filename))
+      if (meta) policyIndex[filename] = meta
+    }
+  }
+  console.log(`[SmartHRIS] Loaded policy index: ${Object.keys(policyIndex).length} documents`)
+} catch (err) {
+  console.error('[SmartHRIS] Failed to load policy index:', err.message)
+}
 
 // ── Express app ───────────────────────────────────────────────────────────────
 const app = express()
@@ -328,6 +390,140 @@ app.post('/api/transfer', async (req, res) => {
   } catch (err) {
     console.error('[POST /api/transfer]', err.message)
     res.status(500).json({ error: err.message, code: 'INTERNAL_ERROR' })
+  }
+})
+
+// ── POST /api/policy-chat ─────────────────────────────────────────────────────
+// Body: { question: string, language?: 'en' | 'sv' }
+// Returns: { answer: string }
+//
+// Two-call flow:
+//   1. Send lightweight front-matter index + question → get relevant doc IDs.
+//   2. Load full content only for matched docs, strip front matter, answer question.
+app.post('/api/policy-chat', async (req, res) => {
+  const { question, language } = req.body ?? {}
+
+  if (!question || typeof question !== 'string' || !question.trim()) {
+    return res.status(400).json({ error: 'question must be a non-empty string', code: 'INVALID_INPUT' })
+  }
+
+  const lang      = language === 'sv' ? 'sv' : 'en'
+  const filenames = POLICY_FILENAMES[lang]
+  const missing   = filenames.filter(f => !policyIndex[f])
+
+  if (missing.length > 0) {
+    return res.status(503).json({
+      error: `Policy index not available: ${missing.join(', ')}`,
+      code:  'POLICIES_UNAVAILABLE',
+    })
+  }
+
+  const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY })
+
+  // ── Call 1: routing — which documents are relevant? ──────────────────────────
+  const headerBlock = filenames
+    .map(f => {
+      const m = policyIndex[f]
+      return [
+        `Document ID: ${m.id}`,
+        `Title: ${m.title}`,
+        `Covers: ${(m.covers ?? []).join(', ')}`,
+        `Irrelevant for: ${(m.irrelevant_for ?? []).join(', ')}`,
+      ].join('\n')
+    })
+    .join('\n\n')
+
+  const routingPrompt = `You are a document routing assistant. \
+Given the index of available policy documents and a user question, return a JSON array \
+of document IDs that are relevant to answering the question. \
+Return only the JSON array and nothing else — no explanation, no markdown. \
+If no documents are relevant return an empty array [].
+
+Available documents:
+${headerBlock}
+
+User question: ${question.trim()}`
+
+  let relevantIds = []
+  try {
+    const routingRes = await withTimeout(
+      client.chat.complete({
+        model:     'mistral-large-latest',
+        maxTokens: 64,
+        messages:  [{ role: 'user', content: routingPrompt }],
+      }),
+      15_000,
+      'Policy routing took too long.'
+    )
+    const raw = (routingRes.choices[0].message.content ?? '').trim()
+      .replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '')
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) relevantIds = parsed
+  } catch (err) {
+    console.error('[POST /api/policy-chat] routing:', err.message)
+    return res.status(500).json({ error: 'Failed to determine relevant documents.', code: 'INTERNAL_ERROR' })
+  }
+
+  if (relevantIds.length === 0) {
+    return res.json({
+      answer: "Your question doesn't appear to be covered by the current company policies on file. " +
+              'Please contact People & Culture at people@nordtech.se for further guidance.',
+    })
+  }
+
+  // ── Load full content for matched documents only ──────────────────────────────
+  const matchedFilenames = filenames.filter(f => relevantIds.includes(policyIndex[f]?.id))
+
+  if (matchedFilenames.length === 0) {
+    return res.json({
+      answer: "Your question doesn't appear to be covered by the current company policies on file. " +
+              'Please contact People & Culture at people@nordtech.se for further guidance.',
+    })
+  }
+
+  let policyContext
+  try {
+    policyContext = matchedFilenames
+      .map(f => {
+        const raw = fs.readFileSync(path.join(POLICIES_DIR, f), 'utf8')
+        return `### ${policyIndex[f].title}\n\n${stripFrontMatter(raw)}`
+      })
+      .join('\n\n---\n\n')
+  } catch (err) {
+    console.error('[POST /api/policy-chat] file load:', err.message)
+    return res.status(503).json({ error: 'Policy documents could not be loaded.', code: 'POLICIES_UNAVAILABLE' })
+  }
+
+  // ── Call 2: answer using only the matched full documents ──────────────────────
+  const systemPrompt = `You are an HR Policy Assistant for NordTech AB. \
+You answer employee questions strictly based on the policy documents provided below.
+Rules:
+- Always state which document and section number your answer comes from (e.g. "Employee Handbook, Section 2.3").
+- Be conversational and direct — avoid bullet-heavy responses unless listing multiple distinct items.
+- If the answer is not found in the documents, say so clearly: do not guess or invent information.
+- Do not reference information from outside the provided documents.
+
+${policyContext}`
+
+  try {
+    const answerRes = await withTimeout(
+      client.chat.complete({
+        model:     'mistral-large-latest',
+        maxTokens: 1024,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user',   content: question.trim() },
+        ],
+      }),
+      30_000,
+      'The policy assistant took too long to respond. Please try again.'
+    )
+
+    res.json({ answer: answerRes.choices[0].message.content ?? '' })
+  } catch (err) {
+    console.error('[POST /api/policy-chat]', err.message)
+    const status = err.code === 'TIMEOUT' ? 504 : 500
+    res.status(status).json({ error: err.message, code: err.code ?? 'INTERNAL_ERROR' })
   }
 })
 

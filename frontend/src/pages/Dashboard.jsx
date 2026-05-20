@@ -9,6 +9,7 @@ import {
 } from 'recharts'
 import { getAnalytics } from '../services/api'
 import { REQUISITIONS } from '../data/requisitions'
+import { useLanguage } from '../contexts/LanguageContext.jsx'
 
 // ── Skeleton primitive ────────────────────────────────────────────────────────
 function Bone({ className }) {
@@ -91,6 +92,7 @@ function writeCache(data) {
 // ── Dashboard page ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const toast   = useToast()
+  const { t }   = useLanguage()
   const cached  = readCache()
   const [analytics, setAnalytics] = useState(cached)
   const [loading,   setLoading]   = useState(!cached)
@@ -135,7 +137,7 @@ export default function Dashboard() {
 
   const kpis = [
     {
-      label:   'Total Employees',
+      label:   t.kpi.totalEmployees,
       value:   loading ? '—' : (totals.total ?? 0),
       sub:     loading ? '' : `${totals.active ?? 0} active · ${totals.on_leave ?? 0} on leave`,
       icon:    Users,
@@ -143,7 +145,7 @@ export default function Dashboard() {
       trend:   'neutral',
     },
     {
-      label:   'Open Requisitions',
+      label:   t.kpi.openRequisitions,
       value:   REQUISITIONS.length,
       sub:     `${REQUISITIONS.filter(r => r.status === 'Interview').length} in interview · ${REQUISITIONS.filter(r => r.status === 'Offer').length} at offer`,
       icon:    Briefcase,
@@ -151,25 +153,25 @@ export default function Dashboard() {
       trend:   'neutral',
     },
     {
-      label:   'Overdue Training',
+      label:   t.kpi.overdueTraining,
       value:   loading ? '—' : (analytics?.overdue_training_count ?? 0),
-      sub:     'Mandatory courses',
+      sub:     t.learning.mandatoryCourses,
       icon:    ShieldAlert,
       iconCls: 'bg-red-100 text-red-600',
       trend:   !loading && (analytics?.overdue_training_count ?? 0) > 0 ? 'up' : 'neutral',
     },
     {
-      label:   'Certs Expiring Soon',
+      label:   t.kpi.certsExpiring,
       value:   loading ? '—' : (analytics?.expiring_certifications_30d ?? 0),
-      sub:     'Within 30 days',
+      sub:     t.dashboard.within30Days,
       icon:    GraduationCap,
       iconCls: 'bg-amber-100 text-amber-600',
       trend:   !loading && (analytics?.expiring_certifications_30d ?? 0) > 0 ? 'up' : 'neutral',
     },
     {
-      label:   'Course Completion',
+      label:   t.kpi.courseCompletion,
       value:   loading ? '—' : `${analytics?.avg_course_completion_rate ?? 0}%`,
-      sub:     'Company-wide average',
+      sub:     t.dashboard.companyWideAvg,
       icon:    BookOpen,
       iconCls: 'bg-violet-100 text-violet-600',
       trend:   'neutral',
@@ -181,7 +183,7 @@ export default function Dashboard() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-slate-800">{t.pages.dashboard}</h1>
         <p className="text-sm text-slate-500 mt-1">{today}</p>
       </div>
 
@@ -199,8 +201,8 @@ export default function Dashboard() {
         {/* Headcount bar chart */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200">
           <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="font-semibold text-slate-800">Headcount by Department</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Active · On Leave · Terminated</p>
+            <h2 className="font-semibold text-slate-800">{t.dashboard.headcountByDept}</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{t.dashboard.headcountSub}</p>
           </div>
 
           {loading ? (
@@ -251,9 +253,9 @@ export default function Dashboard() {
                     iconType="circle"
                     wrapperStyle={{ fontSize: 12, paddingTop: 14 }}
                   />
-                  <Bar dataKey="active"     name="Active"     stackId="a" fill="#3b82f6" />
-                  <Bar dataKey="on_leave"   name="On Leave"   stackId="a" fill="#f59e0b" />
-                  <Bar dataKey="terminated" name="Terminated" stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="active"     name={t.dashboard.active}     stackId="a" fill="#3b82f6" />
+                  <Bar dataKey="on_leave"   name={t.dashboard.onLeave}    stackId="a" fill="#f59e0b" />
+                  <Bar dataKey="terminated" name={t.dashboard.terminated}  stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -264,7 +266,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col">
           <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100">
             <AlertCircle size={16} className="text-red-500 shrink-0" />
-            <h2 className="font-semibold text-slate-800">Compliance Alerts</h2>
+            <h2 className="font-semibold text-slate-800">{t.dashboard.complianceAlerts}</h2>
             {!loading && (
               <span className="ml-auto bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
                 {(analytics?.overdue_training_count ?? 0) + (analytics?.expiring_certifications_30d ?? 0)}
@@ -302,13 +304,13 @@ export default function Dashboard() {
                 </li>
               ))
             ) : (
-              <li className="px-5 py-8 text-center text-sm text-slate-400">No compliance alerts</li>
+              <li className="px-5 py-8 text-center text-sm text-slate-400">{t.empty.noAlerts}</li>
             )}
           </ul>
 
           <div className="px-5 py-3 border-t border-slate-100 mt-auto">
             <button className="text-sm text-blue-600 hover:underline flex items-center gap-1">
-              View all alerts <ArrowRight size={13} />
+              {t.dashboard.viewAllAlerts} <ArrowRight size={13} />
             </button>
           </div>
         </div>
@@ -318,9 +320,9 @@ export default function Dashboard() {
       {/* Recent activity */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-800">Recent Activity</h2>
+          <h2 className="font-semibold text-slate-800">{t.dashboard.recentActivity}</h2>
           <button className="text-sm text-blue-600 hover:underline flex items-center gap-1">
-            View all <ArrowRight size={13} />
+            {t.dashboard.viewAll} <ArrowRight size={13} />
           </button>
         </div>
         <ul className="divide-y divide-slate-50">

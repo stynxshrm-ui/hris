@@ -8,6 +8,7 @@ import {
   getEmployees, getEmployee, getEmployeeEnrollments, getEmployeeLeaveRequests, transferEmployee,
 } from '../services/api'
 import { useToast } from '../components/ui/Toaster.jsx'
+import { useLanguage } from '../contexts/LanguageContext.jsx'
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 
@@ -98,6 +99,7 @@ function fmtCurrency(v) {
 // ── Transfer Modal ────────────────────────────────────────────────────────────
 
 function TransferModal({ employee, departments, onClose, onTransferred }) {
+  const { t }  = useLanguage()
   const [dept,    setDept]    = useState('')
   const [loading, setLoading] = useState(false)
   const [result,  setResult]  = useState(null)
@@ -128,7 +130,7 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Building2 size={17} className="text-blue-500" />
-            <h2 className="font-semibold text-slate-800">Transfer Department</h2>
+            <h2 className="font-semibold text-slate-800">{t.employees.transferDeptTitle}</h2>
           </div>
           {!loading && (
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
@@ -142,7 +144,7 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-emerald-600">
                 <CheckCircle2 size={20} />
-                <p className="font-semibold">Transfer complete</p>
+                <p className="font-semibold">{t.employees.transferComplete}</p>
               </div>
               <p className="text-sm text-slate-600">
                 <span className="font-medium">{result.employee.name}</span> moved from{' '}
@@ -154,7 +156,7 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
               {result.diff.toUnenroll.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                    Unenrolled ({result.diff.toUnenroll.length})
+                    {t.employees.unenrolled} ({result.diff.toUnenroll.length})
                   </p>
                   <ul className="space-y-1.5">
                     {result.diff.toUnenroll.map(c => (
@@ -170,7 +172,7 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
               {result.diff.toEnroll.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                    New Enrollments ({result.diff.toEnroll.length})
+                    {t.employees.newEnrollments} ({result.diff.toEnroll.length})
                   </p>
                   <ul className="space-y-1.5">
                     {result.diff.toEnroll.map(c => (
@@ -184,14 +186,14 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
               )}
 
               {result.diff.toUnenroll.length === 0 && result.diff.toEnroll.length === 0 && (
-                <p className="text-sm text-slate-500 italic">No course enrollment changes required.</p>
+                <p className="text-sm text-slate-500 italic">{t.employees.noCourseChanges}</p>
               )}
 
               <button
                 onClick={onClose}
                 className="w-full mt-2 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
               >
-                Done
+                {t.buttons.done}
               </button>
             </div>
           ) : (
@@ -207,7 +209,7 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
                 disabled={loading}
                 className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:opacity-50"
               >
-                <option value="">Select a department…</option>
+                <option value="">{t.employees.selectDept}</option>
                 {choices.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
 
@@ -223,7 +225,7 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
                   disabled={loading}
                   className="flex-1 py-2.5 text-sm font-medium border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
-                  Cancel
+                  {t.buttons.cancel}
                 </button>
                 <button
                   onClick={handleTransfer}
@@ -231,8 +233,8 @@ function TransferModal({ employee, departments, onClose, onTransferred }) {
                   className="flex-1 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading
-                    ? <><RefreshCw size={14} className="animate-spin" /> Transferring…</>
-                    : <>Transfer <ArrowRight size={14} /></>
+                    ? <><RefreshCw size={14} className="animate-spin" /> {t.employees.transferring}</>
+                    : <>{t.buttons.transfer} <ArrowRight size={14} /></>
                   }
                 </button>
               </div>
@@ -260,21 +262,23 @@ function InfoGrid({ fields }) {
 }
 
 function OverviewTab({ employee }) {
+  const { t } = useLanguage()
   return (
     <div className="px-5 py-5">
       <InfoGrid fields={[
-        ['Department',  employee.department?.name ?? '—'],
-        ['Manager',     employee.manager?.name    ?? '—'],
-        ['Location',    employee.location         ?? '—'],
-        ['Hire Date',   fmtDate(employee.hire_date)],
-        ['Status',      employee.status           ?? '—'],
-        ['Role',        employee.role             ?? '—'],
+        [t.employees.department,  employee.department?.name ?? '—'],
+        [t.employees.manager,     employee.manager?.name    ?? '—'],
+        [t.employees.location,    employee.location         ?? '—'],
+        [t.employees.hireDate,    fmtDate(employee.hire_date)],
+        [t.employees.status,      employee.status           ?? '—'],
+        [t.employees.role,        employee.role             ?? '—'],
       ]} />
     </div>
   )
 }
 
 function CompensationTab({ employee }) {
+  const { t } = useLanguage()
   const outOfBand = employee.salary != null &&
     employee.salary_band_min != null &&
     employee.salary_band_max != null &&
@@ -289,14 +293,14 @@ function CompensationTab({ employee }) {
       {outOfBand && (
         <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
           <AlertCircle size={15} className="shrink-0 mt-px" />
-          <span>Salary is outside the designated band</span>
+          <span>{t.employees.salaryOutOfBand}</span>
         </div>
       )}
       <InfoGrid fields={[
-        ['Salary Band',    bandLabel],
-        ['Current Salary', fmtCurrency(employee.salary)],
-        ['Last Review',    fmtDate(employee.last_review_date)],
-        ['Next Review',    fmtDate(employee.next_review_date)],
+        [t.employees.salaryBand,    bandLabel],
+        [t.employees.currentSalary, fmtCurrency(employee.salary)],
+        [t.employees.lastReview,    fmtDate(employee.last_review_date)],
+        [t.employees.nextReview,    fmtDate(employee.next_review_date)],
       ]} />
     </div>
   )
@@ -309,6 +313,7 @@ const LEAVE_STATUS_MAP = {
 }
 
 function TimeAbsenceTab({ employee, leaveRequests, leaveLoading }) {
+  const { t } = useLanguage()
   const pending = (leaveRequests ?? []).filter(r => r.status === 'Pending')
 
   return (
@@ -316,22 +321,22 @@ function TimeAbsenceTab({ employee, leaveRequests, leaveLoading }) {
       {/* Summary tiles */}
       <div className="grid grid-cols-2 gap-3">
         <div className="p-4 bg-slate-50 rounded-xl">
-          <p className="text-xs font-medium text-slate-400 mb-1">Annual Leave Balance</p>
+          <p className="text-xs font-medium text-slate-400 mb-1">{t.employees.annualLeave}</p>
           {employee.leave_balance != null ? (
             <p className="text-2xl font-bold text-slate-800">
               {employee.leave_balance}
-              <span className="text-sm font-normal text-slate-500 ml-1">days</span>
+              <span className="text-sm font-normal text-slate-500 ml-1">{t.employees.days}</span>
             </p>
           ) : (
             <p className="text-slate-400 text-sm">—</p>
           )}
         </div>
         <div className="p-4 bg-slate-50 rounded-xl">
-          <p className="text-xs font-medium text-slate-400 mb-1">Sick Days This Year</p>
+          <p className="text-xs font-medium text-slate-400 mb-1">{t.employees.sickDays}</p>
           {employee.sick_days_taken != null ? (
             <p className="text-2xl font-bold text-slate-800">
               {employee.sick_days_taken}
-              <span className="text-sm font-normal text-slate-500 ml-1">days</span>
+              <span className="text-sm font-normal text-slate-500 ml-1">{t.employees.days}</span>
             </p>
           ) : (
             <p className="text-slate-400 text-sm">—</p>
@@ -343,7 +348,7 @@ function TimeAbsenceTab({ employee, leaveRequests, leaveLoading }) {
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Calendar size={15} className="text-slate-400" />
-          <h3 className="text-sm font-semibold text-slate-700">Pending Leave Requests</h3>
+          <h3 className="text-sm font-semibold text-slate-700">{t.employees.pendingLeave}</h3>
           {!leaveLoading && (
             <span className="ml-auto text-xs text-slate-400">{pending.length}</span>
           )}
@@ -383,7 +388,7 @@ function TimeAbsenceTab({ employee, leaveRequests, leaveLoading }) {
         ) : (
           <div className="text-center py-6">
             <Calendar size={28} className="mx-auto text-slate-200 mb-2" />
-            <p className="text-sm text-slate-400">No pending leave requests</p>
+            <p className="text-sm text-slate-400">{t.employees.noLeaveRequests}</p>
           </div>
         )}
       </div>
@@ -392,34 +397,35 @@ function TimeAbsenceTab({ employee, leaveRequests, leaveLoading }) {
 }
 
 function CareerTab({ employee, isOnProbation, enrollments, enrollLoading }) {
+  const { t } = useLanguage()
   return (
     <div className="px-5 py-5 space-y-5">
       {/* Career attributes */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-5 text-sm">
         <div>
-          <p className="text-xs font-medium text-slate-400 mb-1">Probation Status</p>
+          <p className="text-xs font-medium text-slate-400 mb-1">{t.employees.probationStatus}</p>
           <span className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${
             isOnProbation
               ? 'bg-orange-100 text-orange-700'
               : 'bg-emerald-100 text-emerald-700'
           }`}>
-            {isOnProbation ? 'On Probation' : 'Confirmed'}
+            {isOnProbation ? t.employees.onProbation : t.employees.confirmedStatus}
           </span>
         </div>
 
         <div>
-          <p className="text-xs font-medium text-slate-400 mb-0.5">Job Grade</p>
+          <p className="text-xs font-medium text-slate-400 mb-0.5">{t.employees.jobGrade}</p>
           <p className="text-slate-700 font-medium">{employee.job_grade ?? '—'}</p>
         </div>
 
         <div>
-          <p className="text-xs font-medium text-slate-400 mb-1">Internal Mobility</p>
+          <p className="text-xs font-medium text-slate-400 mb-1">{t.employees.internalMobility}</p>
           <span className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${
             employee.internal_mobility_flag
               ? 'bg-blue-100 text-blue-700'
               : 'bg-slate-100 text-slate-600'
           }`}>
-            {employee.internal_mobility_flag ? 'Open to Move' : 'Not Flagged'}
+            {employee.internal_mobility_flag ? t.employees.openToMove : t.employees.notFlagged}
           </span>
         </div>
       </div>
@@ -427,7 +433,7 @@ function CareerTab({ employee, isOnProbation, enrollments, enrollLoading }) {
       <div className="border-t border-slate-100 pt-4">
         <div className="flex items-center gap-2 mb-3">
           <GraduationCap size={15} className="text-slate-400" />
-          <h3 className="text-sm font-semibold text-slate-700">Course Enrollments</h3>
+          <h3 className="text-sm font-semibold text-slate-700">{t.employees.courseEnrollments}</h3>
           {!enrollLoading && enrollments && (
             <span className="ml-auto text-xs text-slate-400">
               {enrollments.enrollments?.length ?? 0}
@@ -454,12 +460,12 @@ function CareerTab({ employee, isOnProbation, enrollments, enrollLoading }) {
                     <p className="text-xs text-slate-400 mt-0.5">
                       {e.course?.category}
                       {e.course?.is_mandatory && (
-                        <span className="ml-2 text-red-500 font-medium">Mandatory</span>
+                        <span className="ml-2 text-red-500 font-medium">{t.employees.mandatory}</span>
                       )}
                     </p>
                     {e.due_date && (
                       <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                        <Clock size={10} /> Due {fmtDate(e.due_date)}
+                        <Clock size={10} /> {t.employees.due} {fmtDate(e.due_date)}
                       </p>
                     )}
                   </div>
@@ -473,7 +479,7 @@ function CareerTab({ employee, isOnProbation, enrollments, enrollLoading }) {
         ) : (
           <div className="text-center py-6">
             <BookOpen size={28} className="mx-auto text-slate-200 mb-2" />
-            <p className="text-sm text-slate-400">No course enrollments</p>
+            <p className="text-sm text-slate-400">{t.employees.noCourseEnrollments}</p>
           </div>
         )}
       </div>
@@ -495,6 +501,7 @@ function EmployeePanel({
   leaveRequests, leaveLoading,
   departments, onClose, onTransferred,
 }) {
+  const { t }  = useLanguage()
   const [tab,          setTab]          = useState('overview')
   const [showTransfer, setShowTransfer] = useState(false)
 
@@ -511,7 +518,7 @@ function EmployeePanel({
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
-          <h2 className="font-semibold text-slate-800">Employee Profile</h2>
+          <h2 className="font-semibold text-slate-800">{t.employees.employeeProfile}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
             <X size={18} />
           </button>
@@ -528,7 +535,7 @@ function EmployeePanel({
                 <StatusBadge status={employee.status} />
                 {isOnProbation && (
                   <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
-                    On Probation
+                    {t.employees.onProbation}
                   </span>
                 )}
               </div>
@@ -539,7 +546,7 @@ function EmployeePanel({
         {/* Tab bar */}
         <div className="border-b border-slate-100 shrink-0">
           <div className="flex">
-            {TABS.map(({ id, label }) => (
+            {TABS.map(({ id }) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
@@ -549,7 +556,7 @@ function EmployeePanel({
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
-                {label}
+                {t.employees.tabs[id]}
               </button>
             ))}
           </div>
@@ -582,7 +589,7 @@ function EmployeePanel({
             onClick={() => setShowTransfer(true)}
             className="w-full py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           >
-            <Building2 size={15} /> Transfer Department
+            <Building2 size={15} /> {t.employees.transferDeptBtn}
           </button>
         </div>
       </div>
@@ -605,7 +612,8 @@ function EmployeePanel({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Employees() {
-  const toast = useToast()
+  const toast  = useToast()
+  const { t }  = useLanguage()
   const [employees,     setEmployees]     = useState([])
   const [loading,       setLoading]       = useState(true)
   const [search,        setSearch]        = useState('')
@@ -676,16 +684,16 @@ export default function Employees() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Employees</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{t.pages.employees}</h1>
           <p className="text-sm text-slate-500 mt-1">
             {loading
-              ? 'Loading…'
+              ? t.compliance.loading
               : `${filtered.length} of ${employees.length} employee${employees.length !== 1 ? 's' : ''}`
             }
           </p>
         </div>
         <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-          <UserPlus size={16} /> Add Employee
+          <UserPlus size={16} /> {t.employees.addEmployee}
         </button>
       </div>
 
@@ -698,7 +706,7 @@ export default function Employees() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search name or job title…"
+              placeholder={`${t.buttons.search} name or job title…`}
               className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -707,7 +715,7 @@ export default function Employees() {
             onChange={e => setDeptFilter(e.target.value)}
             className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
-            <option value="">All Departments</option>
+            <option value="">{t.employees.allDepartments}</option>
             {departments.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           <select
@@ -715,10 +723,10 @@ export default function Employees() {
             onChange={e => setStatusFilter(e.target.value)}
             className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
-            <option value="">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="On Leave">On Leave</option>
-            <option value="Terminated">Terminated</option>
+            <option value="">{t.employees.allStatuses}</option>
+            <option value="Active">{t.employees.active}</option>
+            <option value="On Leave">{t.employees.onLeave}</option>
+            <option value="Terminated">{t.employees.terminated}</option>
           </select>
         </div>
       </div>
@@ -728,7 +736,7 @@ export default function Employees() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {['Name', 'Department', 'Job Title', 'Status', 'Hire Date'].map(col => (
+              {[t.employees.colName, t.employees.colDept, t.employees.colTitle, t.employees.colStatus, t.employees.colHireDate].map(col => (
                 <th key={col} className="text-left px-5 py-3 font-medium text-slate-500">
                   {col}
                 </th>
@@ -742,12 +750,12 @@ export default function Employees() {
               <tr>
                 <td colSpan={5} className="px-5 py-16 text-center">
                   <Search size={32} className="mx-auto mb-3 text-slate-200" />
-                  <p className="text-sm font-medium text-slate-400">No employees match your filters</p>
+                  <p className="text-sm font-medium text-slate-400">{t.empty.noEmployees}</p>
                   <button
                     onClick={() => { setSearch(''); setDeptFilter(''); setStatusFilter('') }}
                     className="mt-2 text-xs text-blue-600 hover:underline"
                   >
-                    Clear filters
+                    {t.buttons.clearFilters}
                   </button>
                 </td>
               </tr>

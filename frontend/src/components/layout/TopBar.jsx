@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Menu, Bell, ChevronDown, User, Settings, LogOut, AlertCircle, Info } from 'lucide-react'
 import clsx from 'clsx'
+import { useAuth } from '../../contexts/AuthContext.jsx'
+import { useLanguage } from '../../contexts/LanguageContext.jsx'
 
 const NOTIFICATIONS = [
   {
@@ -27,6 +30,10 @@ const NOTIFICATIONS = [
 ]
 
 export default function TopBar({ onMenuClick, notifCount }) {
+  const navigate  = useNavigate()
+  const auth      = useAuth()
+  const { language, setLanguage, t } = useLanguage()
+
   const [notifOpen, setNotifOpen] = useState(false)
   const [userOpen,  setUserOpen]  = useState(false)
   const notifRef = useRef(null)
@@ -40,6 +47,15 @@ export default function TopBar({ onMenuClick, notifCount }) {
     document.addEventListener('mousedown', onMouseDown)
     return () => document.removeEventListener('mousedown', onMouseDown)
   }, [])
+
+  function handleSignOut() {
+    auth.logout()
+    navigate('/login', { replace: true })
+  }
+
+  function toggleLanguage() {
+    setLanguage(language === 'en' ? 'sv' : 'en')
+  }
 
   return (
     <header className="h-16 bg-slate-900 flex items-center justify-between px-4 shrink-0 border-b border-slate-800">
@@ -64,8 +80,17 @@ export default function TopBar({ onMenuClick, notifCount }) {
         </div>
       </div>
 
-      {/* ── Right: bell + user ─────────────────────────────────────────── */}
+      {/* ── Right: language toggle + bell + user ───────────────────────── */}
       <div className="flex items-center gap-1">
+
+        {/* Language toggle */}
+        <button
+          onClick={toggleLanguage}
+          title={language === 'en' ? 'Switch to Swedish' : 'Byt till engelska'}
+          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-base leading-none"
+        >
+          {language === 'en' ? '🇸🇪' : '🇬🇧'}
+        </button>
 
         {/* Notification bell */}
         <div ref={notifRef} className="relative">
@@ -85,8 +110,8 @@ export default function TopBar({ onMenuClick, notifCount }) {
           {notifOpen && (
             <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                <span className="text-sm font-semibold text-slate-800">Notifications</span>
-                <button className="text-xs text-blue-600 hover:underline">Mark all read</button>
+                <span className="text-sm font-semibold text-slate-800">{t.topBar.notifications}</span>
+                <button className="text-xs text-blue-600 hover:underline">{t.topBar.markAllRead}</button>
               </div>
               <ul>
                 {NOTIFICATIONS.map(n => {
@@ -134,8 +159,11 @@ export default function TopBar({ onMenuClick, notifCount }) {
                 <Settings size={15} className="text-slate-400" /> Settings
               </button>
               <div className="my-1 border-t border-slate-100" />
-              <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                <LogOut size={15} /> Sign Out
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut size={15} /> {t.buttons.signOut}
               </button>
             </div>
           )}

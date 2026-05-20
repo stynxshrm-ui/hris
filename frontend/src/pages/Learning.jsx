@@ -7,6 +7,7 @@ import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { getLearning, getAnalytics, getCompliance } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext.jsx'
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 
@@ -87,6 +88,7 @@ const DONUT_COLORS = {
 }
 
 function DonutChart({ data, centerPct, loading }) {
+  const { t } = useLanguage()
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -125,7 +127,7 @@ function DonutChart({ data, centerPct, loading }) {
            style={{ top: 0, bottom: 0 }}>
         <div className="text-center -mt-6">
           <p className="text-2xl font-bold text-slate-800">{centerPct}%</p>
-          <p className="text-xs text-slate-400 mt-0.5">completed</p>
+          <p className="text-xs text-slate-400 mt-0.5">{t.learning.completed}</p>
         </div>
       </div>
 
@@ -159,7 +161,8 @@ function fmtDate(iso) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Learning() {
-  const toast = useToast()
+  const toast  = useToast()
+  const { t }  = useLanguage()
   const [courses,    setCourses]    = useState([])
   const [analytics,  setAnalytics]  = useState(null)
   const [compliance, setCompliance] = useState(null)
@@ -212,30 +215,30 @@ export default function Learning() {
 
   const kpis = [
     {
-      label:   'Total Courses',
+      label:   t.kpi.totalCourses,
       value:   loading ? '—' : courses.length,
-      sub:     loading ? '' : `${courses.filter(c => c.is_mandatory).length} mandatory`,
+      sub:     loading ? '' : `${courses.filter(c => c.is_mandatory).length} ${t.learning.mandatory.toLowerCase()}`,
       icon:    BookOpen,
       iconCls: 'bg-blue-100 text-blue-600',
     },
     {
-      label:   'Avg Completion',
+      label:   t.kpi.avgCompletion,
       value:   loading ? '—' : `${analytics?.avg_course_completion_rate ?? 0}%`,
-      sub:     'Across all enrollments',
+      sub:     t.learning.acrossAllEnrollments,
       icon:    GraduationCap,
       iconCls: 'bg-emerald-100 text-emerald-600',
     },
     {
-      label:   'Overdue Learners',
+      label:   t.kpi.overdueLearnersLabel,
       value:   loading ? '—' : (analytics?.overdue_training_count ?? 0),
-      sub:     'Mandatory courses overdue',
+      sub:     t.learning.mandatoryOverdue,
       icon:    ShieldAlert,
       iconCls: 'bg-red-100 text-red-600',
     },
     {
-      label:   'Certs Expiring',
+      label:   t.kpi.certsExpiring30,
       value:   loading ? '—' : (analytics?.expiring_certifications_30d ?? 0),
-      sub:     'Within next 30 days',
+      sub:     t.learning.within30Days,
       icon:    Clock,
       iconCls: 'bg-amber-100 text-amber-600',
     },
@@ -246,8 +249,8 @@ export default function Learning() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Learning &amp; Development</h1>
-        <p className="text-sm text-slate-500 mt-1">Course catalog, enrollment tracking, and compliance overview</p>
+        <h1 className="text-2xl font-bold text-slate-800">{t.pages.learning}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t.learning.subtitle}</p>
       </div>
 
       {/* KPI row */}
@@ -265,19 +268,19 @@ export default function Learning() {
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
             <BookOpen size={16} className="text-slate-400" />
-            <h2 className="font-semibold text-slate-800">Course Catalog</h2>
+            <h2 className="font-semibold text-slate-800">{t.learning.courseCatalog}</h2>
             {!loading && (
-              <span className="ml-auto text-xs text-slate-400">{courses.length} courses</span>
+              <span className="ml-auto text-xs text-slate-400">{courses.length} {t.learning.courses}</span>
             )}
           </div>
 
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="text-left px-5 py-3 font-medium text-slate-500">Course</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500">Category</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 w-8">Hrs</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 w-40">Completion</th>
+                <th className="text-left px-5 py-3 font-medium text-slate-500">{t.learning.colCourse}</th>
+                <th className="text-left px-5 py-3 font-medium text-slate-500">{t.learning.colCategory}</th>
+                <th className="text-left px-5 py-3 font-medium text-slate-500 w-8">{t.learning.colHrs}</th>
+                <th className="text-left px-5 py-3 font-medium text-slate-500 w-40">{t.learning.colCompletion}</th>
               </tr>
             </thead>
             <tbody>
@@ -304,7 +307,7 @@ export default function Learning() {
                         <div className="flex items-center gap-1.5 mt-0.5">
                           {c.is_mandatory && (
                             <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-px bg-red-100 text-red-700 rounded">
-                              Mandatory
+                              {t.learning.mandatory}
                             </span>
                           )}
                           {c.department && (
@@ -331,7 +334,7 @@ export default function Learning() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
           <div className="flex items-center gap-2 mb-4">
             <GraduationCap size={16} className="text-slate-400" />
-            <h2 className="font-semibold text-slate-800">Enrollment Status</h2>
+            <h2 className="font-semibold text-slate-800">{t.learning.enrollmentStatus}</h2>
           </div>
           <DonutChart data={donutData} centerPct={centerPct} loading={loading} />
         </div>
@@ -345,7 +348,7 @@ export default function Learning() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100">
             <Award size={16} className="text-amber-500" />
-            <h2 className="font-semibold text-slate-800">Top Completed Courses</h2>
+            <h2 className="font-semibold text-slate-800">{t.learning.topCompleted}</h2>
           </div>
 
           {loading ? (
@@ -384,7 +387,7 @@ export default function Learning() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-semibold text-slate-700">{completed}</p>
-                      <p className="text-[10px] text-slate-400">done</p>
+                      <p className="text-[10px] text-slate-400">{t.learning.done}</p>
                     </div>
                   </li>
                 )
@@ -397,7 +400,7 @@ export default function Learning() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100">
             <AlertTriangle size={16} className="text-red-500" />
-            <h2 className="font-semibold text-slate-800">Most Overdue Learners</h2>
+            <h2 className="font-semibold text-slate-800">{t.learning.mostOverdue}</h2>
             {!loading && riskTable.length > 0 && (
               <span className="ml-auto bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
                 {compliance?.overdue_mandatory_training?.length ?? 0}
@@ -420,15 +423,15 @@ export default function Learning() {
           ) : riskTable.length === 0 ? (
             <div className="px-5 py-12 text-center">
               <ShieldAlert size={28} className="mx-auto text-slate-200 mb-2" />
-              <p className="text-sm text-slate-400">No overdue mandatory training</p>
+              <p className="text-sm text-slate-400">{t.learning.noOverdueTraining}</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left px-5 py-3 font-medium text-slate-500">Employee</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500">Course</th>
-                  <th className="text-right px-5 py-3 font-medium text-slate-500">Overdue</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500">{t.learning.colEmployee}</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500">{t.learning.colCourse}</th>
+                  <th className="text-right px-5 py-3 font-medium text-slate-500">{t.learning.colOverdue}</th>
                 </tr>
               </thead>
               <tbody>

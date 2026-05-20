@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { getCompliance } from '../services/api'
 import { useToast } from '../components/ui/Toaster.jsx'
+import { useLanguage } from '../contexts/LanguageContext.jsx'
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,6 @@ function fmtDate(iso) {
 
 const SEV = {
   critical: {
-    label:     'Critical',
     Icon:      ShieldAlert,
     headerCls: 'bg-red-50 border-red-200 text-red-700',
     borderCls: 'border-l-4 border-l-red-500',
@@ -50,7 +50,6 @@ const SEV = {
     dotCls:    'bg-red-500',
   },
   warning: {
-    label:     'Warning',
     Icon:      AlertTriangle,
     headerCls: 'bg-amber-50 border-amber-200 text-amber-700',
     borderCls: 'border-l-4 border-l-amber-400',
@@ -58,7 +57,6 @@ const SEV = {
     dotCls:    'bg-amber-400',
   },
   info: {
-    label:     'Info',
     Icon:      Info,
     headerCls: 'bg-blue-50 border-blue-200 text-blue-700',
     borderCls: 'border-l-4 border-l-blue-400',
@@ -136,12 +134,13 @@ Thank you for your prompt attention.
 
 Best regards,
 Amanda Foster
-HR Administrator — ACME Corporation`
+HR Administrator — NordTech AB`
 }
 
 // ── Reminder Modal ────────────────────────────────────────────────────────────
 
 function ReminderModal({ alert, onClose }) {
+  const { t }  = useLanguage()
   const [body,    setBody]    = useState(() => buildEmail(alert))
   const [sent,    setSent]    = useState(false)
   const [sending, setSending] = useState(false)
@@ -159,7 +158,7 @@ function ReminderModal({ alert, onClose }) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2">
             <Bell size={17} className="text-blue-500" />
-            <h2 className="font-semibold text-slate-800">Send Reminder</h2>
+            <h2 className="font-semibold text-slate-800">{t.compliance.sendReminderTitle}</h2>
           </div>
           {!sending && (
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
@@ -173,15 +172,15 @@ function ReminderModal({ alert, onClose }) {
             <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
               <CheckCircle2 size={24} className="text-emerald-600" />
             </div>
-            <p className="font-semibold text-slate-800">Reminder sent</p>
+            <p className="font-semibold text-slate-800">{t.compliance.reminderSent}</p>
             <p className="text-sm text-slate-500 text-center">
-              Email delivered to <span className="font-medium">{alert.employeeName}</span>
+              {t.compliance.emailDeliveredTo} <span className="font-medium">{alert.employeeName}</span>
             </p>
             <button
               onClick={onClose}
               className="mt-2 px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
             >
-              Done
+              {t.buttons.done}
             </button>
           </div>
         ) : (
@@ -213,7 +212,7 @@ function ReminderModal({ alert, onClose }) {
                 disabled={sending}
                 className="flex-1 py-2.5 text-sm font-medium border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
-                Cancel
+                {t.buttons.cancel}
               </button>
               <button
                 onClick={handleSend}
@@ -221,8 +220,8 @@ function ReminderModal({ alert, onClose }) {
                 className="flex-1 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {sending
-                  ? <><RefreshCw size={14} className="animate-spin" /> Sending…</>
-                  : <><Bell size={14} /> Send Reminder</>
+                  ? <><RefreshCw size={14} className="animate-spin" /> {t.buttons.sending}</>
+                  : <><Bell size={14} /> {t.buttons.sendReminder}</>
                 }
               </button>
             </div>
@@ -236,6 +235,7 @@ function ReminderModal({ alert, onClose }) {
 // ── Alert card ────────────────────────────────────────────────────────────────
 
 function AlertCard({ alert, resolving, onRemind, onResolve }) {
+  const { t } = useLanguage()
   const sev = SEV[alert.severity]
 
   const timeLabel = alert.type === 'overdue'
@@ -270,13 +270,13 @@ function AlertCard({ alert, resolving, onRemind, onResolve }) {
           onClick={() => onRemind(alert)}
           className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
         >
-          <Bell size={12} /> Send Reminder
+          <Bell size={12} /> {t.buttons.sendReminder}
         </button>
         <button
           onClick={() => onResolve(alert.id)}
           className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
         >
-          <CheckCircle2 size={12} /> Mark Resolved
+          <CheckCircle2 size={12} /> {t.buttons.markResolved}
         </button>
       </div>
     </div>
@@ -286,14 +286,15 @@ function AlertCard({ alert, resolving, onRemind, onResolve }) {
 // ── Section ───────────────────────────────────────────────────────────────────
 
 function Section({ severity, alerts, resolving, onRemind, onResolve }) {
+  const { t } = useLanguage()
   if (alerts.length === 0) return null
-  const { label, Icon, headerCls } = SEV[severity]
+  const { Icon, headerCls } = SEV[severity]
 
   return (
     <div>
       <div className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border mb-3 ${headerCls}`}>
         <Icon size={16} />
-        <span className="font-semibold text-sm">{label}</span>
+        <span className="font-semibold text-sm">{t.severity[severity]}</span>
         <span className="ml-auto text-xs font-bold bg-white/60 px-2 py-0.5 rounded-full">
           {alerts.length}
         </span>
@@ -340,7 +341,8 @@ function SkeletonCard() {
 const SEVERITIES = ['critical', 'warning', 'info']
 
 export default function Compliance() {
-  const toast = useToast()
+  const toast  = useToast()
+  const { t }  = useLanguage()
   const [allAlerts,   setAllAlerts]   = useState([])
   const [loading,     setLoading]     = useState(true)
   const [resolving,   setResolving]   = useState(new Set())
@@ -391,10 +393,10 @@ export default function Compliance() {
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Compliance Alerts</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{t.pages.compliance}</h1>
           <p className="text-sm text-slate-500 mt-1">
             {loading
-              ? 'Loading…'
+              ? t.compliance.loading
               : `${visible.length} active alert${visible.length !== 1 ? 's' : ''}${totalResolved > 0 ? ` · ${totalResolved} resolved this session` : ''}`
             }
           </p>
@@ -409,7 +411,7 @@ export default function Compliance() {
               return (
                 <span key={s} className="flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 px-2.5 py-1.5 rounded-lg shadow-sm">
                   <span className={`w-2 h-2 rounded-full ${SEV[s].dotCls}`} />
-                  {count} {SEV[s].label}
+                  {count} {t.severity[s]}
                 </span>
               )
             })}
@@ -429,7 +431,7 @@ export default function Compliance() {
                 sevFilter === '' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              All
+              {t.buttons.all}
             </button>
             {SEVERITIES.map(s => (
               <button
@@ -439,7 +441,7 @@ export default function Compliance() {
                   sevFilter === s ? SEV[s].badgeCls : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                {SEV[s].label}
+                {t.severity[s]}
               </button>
             ))}
           </div>
@@ -449,7 +451,7 @@ export default function Compliance() {
             onChange={e => setDeptFilter(e.target.value)}
             className="ml-auto px-3 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
-            <option value="">All Departments</option>
+            <option value="">{t.compliance.allDepartments}</option>
             {departments.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </div>
@@ -471,12 +473,12 @@ export default function Compliance() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 py-20 text-center">
           <CheckCircle2 size={36} className="mx-auto text-emerald-300 mb-3" />
           <p className="font-semibold text-slate-700">
-            {totalResolved > 0 && !sevFilter && !deptFilter ? 'All caught up!' : 'No alerts match your filters'}
+            {totalResolved > 0 && !sevFilter && !deptFilter ? t.empty.allCaughtUp : t.empty.noAlertsMatch}
           </p>
           <p className="text-sm text-slate-400 mt-1">
             {totalResolved > 0 && !sevFilter && !deptFilter
               ? `${totalResolved} alert${totalResolved !== 1 ? 's' : ''} resolved this session`
-              : 'Try adjusting the severity or department filter'
+              : t.compliance.tryAdjusting
             }
           </p>
           {(sevFilter || deptFilter) && (
@@ -484,7 +486,7 @@ export default function Compliance() {
               onClick={() => { setSevFilter(''); setDeptFilter('') }}
               className="mt-3 text-sm text-blue-600 hover:underline"
             >
-              Clear filters
+              {t.buttons.clearFilters}
             </button>
           )}
         </div>

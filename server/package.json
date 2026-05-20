@@ -9,6 +9,7 @@
     "dev": "node --watch index.js"
   },
   "dependencies": {
+    "@mistralai/mistralai": "^2.2.1",
     "@supabase/supabase-js": "^2.50.0",
     "cors": "^2.8.5",
     "express": "^4.21.0",
