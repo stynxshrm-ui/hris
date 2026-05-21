@@ -4,6 +4,7 @@
 .env.*.local
 .env.production
 
+*.mp4
 # ── Node / npm ────────────────────────────────────────────────────────────────
 node_modules/
 agent/node_modules/
